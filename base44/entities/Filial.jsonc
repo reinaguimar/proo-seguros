@@ -1,0 +1,96 @@
+{
+  "name": "Filial",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome da filial"
+    },
+    "codigo_susep": {
+      "type": "string",
+      "description": "C\u00f3digo SUSEP global da seguradora (6 d\u00edgitos) - compartilhado entre filiais"
+    },
+    "codigo_filial": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico da filial (2 chars alfanum\u00e9rico) - usado no n\u00famero da ap\u00f3lice como XX em: SUSEP.ANO.031.XX.SEQ.REC"
+    },
+    "cnpj": {
+      "type": "string",
+      "description": "CNPJ da filial"
+    },
+    "cidade": {
+      "type": "string",
+      "description": "Cidade da filial"
+    },
+    "estado": {
+      "type": "string",
+      "description": "UF da filial"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se a filial est\u00e1 ativa para emiss\u00e3o"
+    },
+    "ultimo_numero_sequencial": {
+      "type": "number",
+      "default": 0,
+      "description": "\u00daltimo n\u00famero sequencial YYYYY usado por esta filial"
+    },
+    "total_apolices": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de ap\u00f3lices emitidas por esta filial"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "matriz",
+        "sub_representante"
+      ],
+      "default": "sub_representante",
+      "description": "Tipo: matriz ou sub-representante"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL da logo da filial para uso no certificado"
+    },
+    "franquia_percentual": {
+      "type": "number",
+      "default": 6,
+      "description": "Percentual de franquia sobre o LMI (ex: 6 = 6%)"
+    },
+    "site": {
+      "type": "string",
+      "description": "Site da filial (ex: gestaonew.com.br)"
+    },
+    "telefone_sac": {
+      "type": "string",
+      "description": "Telefone do SAC"
+    },
+    "email_sac": {
+      "type": "string",
+      "description": "E-mail do SAC"
+    },
+    "telefone_ouvidoria": {
+      "type": "string",
+      "description": "Telefone da ouvidoria"
+    },
+    "email_ouvidoria": {
+      "type": "string",
+      "description": "E-mail da ouvidoria"
+    },
+    "cor_primaria": {
+      "type": "string",
+      "description": "Cor principal da identidade visual em hex (ex: #1a3a5c). Usada no certificado."
+    },
+    "cor_texto_cabecalho": {
+      "type": "string",
+      "description": "Cor do texto no cabe\u00e7alho. Use #ffffff para fundo escuro ou #1a1a1a para fundo claro."
+    }
+  },
+  "required": [
+    "nome",
+    "codigo_susep",
+    "codigo_filial"
+  ]
+}
