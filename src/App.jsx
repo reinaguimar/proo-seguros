@@ -7,6 +7,9 @@ import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
+import SaudeSistema from './pages/SaudeSistema';
+import BorderoFilial from './pages/BorderoFilial';
+import BorderoContabil from './pages/BorderoContabil';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
@@ -60,6 +63,9 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/SaudeSistema" element={<LayoutWrapper currentPageName="SaudeSistema"><SaudeSistema /></LayoutWrapper>} />
+      <Route path="/borderou-filial" element={<BorderoFilial />} />
+      <Route path="/bordero-contabil" element={<LayoutWrapper currentPageName="BorderoContabil"><BorderoContabil /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

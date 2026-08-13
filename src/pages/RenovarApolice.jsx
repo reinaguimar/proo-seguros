@@ -22,10 +22,10 @@ const CONFIG = {
 };
 
 const COBERTURAS_FIXAS = [
-  { id_cobertura: "001", ramo: 31, nome: "Furto", percentual: 0.195, produto: "FR" },
-  { id_cobertura: "002", ramo: 31, nome: "Roubo", percentual: 0.215, produto: "FR" },
-  { id_cobertura: "006", ramo: 42, nome: "RCF-V", percentual: 0, valor_fixo: 35.90, lmi_fixo: 100000, produto: "RCFV" },
-  { id_cobertura: "008", ramo: 31, nome: "Colisão Parcial", percentual: 0.28, produto: "COL_PARCIAL" },
+  { id_cobertura: "001", ramo: 31, nome: "Furto", percentual: 0.20, produto: "FR" },
+  { id_cobertura: "002", ramo: 31, nome: "Roubo", percentual: 0.20, produto: "FR" },
+  { id_cobertura: "006", ramo: 42, nome: "RCF-V", percentual: 0.11, produto: "RCFV" },
+  { id_cobertura: "008", ramo: 31, nome: "Colisão Parcial", percentual: 0.18, produto: "COL_PARCIAL" },
   { id_cobertura: "009", ramo: 31, nome: "Colisão Total", percentual: 0.22, produto: "COL_TOTAL" },
   { id_cobertura: "010", ramo: 31, nome: "Incendio e Fenomenos da Natureza", percentual: 0.09, produto: "INCENDIO" }
 ];
@@ -68,7 +68,8 @@ export default function RenovarApolice() {
             produtos: data.produtos || [],
             premio_bruto: data.premio_bruto_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
             id_objeto: data.id_objeto,
-            data_movimento: format(new Date(), 'yyyy-MM-dd')
+            data_movimento: format(new Date(), 'yyyy-MM-dd'),
+            rcfv_lmi: data.rcfv_lmi || 100000
           });
         })
         .catch(err => {
@@ -85,52 +86,46 @@ export default function RenovarApolice() {
     }
   }, [loadAttempts]);
 
-  const generatePolicyNumber = async (id_objeto) => {
+  const generatePolicyNumber = async (id_objeto, filial_id, filial_codigo_susep) => {
     if (!id_objeto) throw new Error("ID do objeto é obrigatório para gerar o número da apólice.");
-    let yyyyy = '00001', zzz = '001';
-    const existingPoliciesForObject = await base44.entities.Apolice.filter({ id_objeto });
-    if (existingPoliciesForObject.length > 0) {
-      zzz = (existingPoliciesForObject.length + 1).toString().padStart(3, '0');
-      const parts = existingPoliciesForObject[0].numero_apolice.split('.');
-      if (parts.length === 6) yyyyy = parts[4];
-    } else {
-      const allPolicies = await base44.entities.Apolice.list();
-      if (allPolicies.length > 0) {
-        const maxYYYYY = allPolicies.reduce((max, policy) => {
-          const parts = policy.numero_apolice.split('.');
-          if (parts.length === 6) {
-            const currentY = parseInt(parts[4], 10);
-            return currentY > max ? currentY : max;
-          }
-          return max;
-        }, 0);
-        yyyyy = (maxYYYYY + 1).toString().padStart(5, '0');
-      }
-    }
+    if (!filial_id || !filial_codigo_susep) throw new Error("Filial da apólice original não encontrada.");
+
+    // Buscar filial para pegar o contador sequencial
+    const filiais = await base44.entities.Filial.filter({ id: filial_id });
+    if (filiais.length === 0) throw new Error("Filial não encontrada.");
+    const filial = filiais[0];
+
+    const novoSequencial = (filial.ultimo_numero_sequencial || 0) + 1;
+    const nnnnnn = novoSequencial.toString().padStart(6, '0');
+
+    // ZZZ: número de recorrências do veículo nesta filial
+    const apolicesToObject = await base44.entities.Apolice.filter({ id_objeto, filial_id });
+    const zzz = (apolicesToObject.length + 1).toString().padStart(3, '0');
+
     const year = new Date().getFullYear();
-    return `110627.${year}.02.031.${yyyyy}.${zzz}`;
+    const codigoFilial = (filial.codigo_filial || '10').toUpperCase();
+    const numeroGerado = `${filial_codigo_susep}.${year}.${codigoFilial}.031.${nnnnnn}.${zzz}`;
+
+    // Verificar unicidade do número
+    const duplicata = await base44.entities.Apolice.filter({ numero_apolice: numeroGerado });
+    if (duplicata.length > 0) throw new Error(`Número de apólice ${numeroGerado} já existe.`);
+
+    return { numeroGerado, novoSequencial, filialId: filial.id, filialCodigo: filial.codigo_filial || '10' };
   };
 
   const calculateDerivatives = async (data) => {
     const startDate = new Date(data.data_inicio);
     const endDate = addDays(startDate, CONFIG.prazo_em_dias);
     
-    const numero_apolice = await generatePolicyNumber(data.id_objeto);
+    const { numeroGerado: numero_apolice, novoSequencial, filialId, filialCodigo } = await generatePolicyNumber(
+      data.id_objeto,
+      apoliceOriginal.filial_id,
+      apoliceOriginal.filial_codigo_susep
+    );
     const valor_corretagem_total = Math.round(data.premio_bruto * CONFIG.percentual_corretagem * 100) / 100;
 
-    let premio_bruto_distribuivel = data.premio_bruto;
-    const temRCFV = data.produtos.includes("RCFV");
-    if (temRCFV) {
-      const rcfvCoverage = COBERTURAS_FIXAS.find(c => c.produto === "RCFV");
-      if (rcfvCoverage) {
-        premio_bruto_distribuivel -= rcfvCoverage.valor_fixo;
-      }
-    }
-
     const produtosSelecionados = COBERTURAS_FIXAS.filter(c => data.produtos.includes(c.produto));
-    const percentual_total_selecionado_sem_RCFV = produtosSelecionados
-      .filter(c => c.produto !== "RCFV")
-      .reduce((sum, c) => sum + c.percentual, 0);
+    const percentual_total_selecionado = produtosSelecionados.reduce((sum, c) => sum + c.percentual, 0);
 
     const coberturas_calculadas = COBERTURAS_FIXAS.map((cobertura, index) => {
       let premio_bruto = 0;
@@ -139,12 +134,10 @@ export default function RenovarApolice() {
       const isSelected = data.produtos.includes(cobertura.produto);
 
       if (isSelected) {
-        valor_maximo = cobertura.lmi_fixo || data.lmi_geral;
-        if (cobertura.produto === "RCFV") {
-          premio_bruto = cobertura.valor_fixo;
-        } else if (percentual_total_selecionado_sem_RCFV > 0) {
-          const percentual_relativo = cobertura.percentual / percentual_total_selecionado_sem_RCFV;
-          premio_bruto = Math.round(premio_bruto_distribuivel * percentual_relativo * 100) / 100;
+        valor_maximo = cobertura.produto === "RCFV" ? (data.rcfv_lmi || 100000) : data.lmi_geral;
+        if (percentual_total_selecionado > 0) {
+          const percentual_relativo = cobertura.percentual / percentual_total_selecionado;
+          premio_bruto = Math.round(data.premio_bruto * percentual_relativo * 100) / 100;
         }
       }
       
@@ -174,7 +167,10 @@ export default function RenovarApolice() {
       iof_total, 
       premio_comercial_total,
       valor_corretagem_total,
-      coberturas_calculadas
+      coberturas_calculadas,
+      novoSequencial,
+      filialId,
+      filialCodigo
     };
   };
 
@@ -231,6 +227,36 @@ export default function RenovarApolice() {
     };
     
     try {
+      // B) Validação de data: início da renovação não pode ser anterior ao fim da original
+      if (formData.data_inicio && apoliceOriginal.data_fim_apolice) {
+        const dataInicioNova = new Date(formData.data_inicio + 'T00:00:00');
+        const dataFimOriginal = new Date(apoliceOriginal.data_fim_apolice + 'T00:00:00');
+        if (dataInicioNova < dataFimOriginal) {
+          const fmtDt = (d) => format(new Date(d + 'T00:00:00'), 'dd/MM/yyyy');
+          setError(
+            `A data de início da renovação (${fmtDt(formData.data_inicio)}) é anterior ao fim da apólice original ` +
+            `(${fmtDt(apoliceOriginal.data_fim_apolice)}). Por favor, defina uma data de início igual ou posterior a ${fmtDt(apoliceOriginal.data_fim_apolice)}.`
+          );
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      // C) Verificar se já existe renovação ativa para esta apólice
+      const renovacoesExistentes = await base44.entities.Apolice.filter({ renovacao_de: apoliceOriginal.id });
+      const renovacaoAtiva = renovacoesExistentes.find(a =>
+        a.natureza_movimento !== 'Cancelamento' && a.natureza_movimento !== '03 - Cancelamento'
+      );
+      if (renovacaoAtiva) {
+        const confirmar = window.confirm(
+          `Atenção: já existe uma renovação ativa (nº ${renovacaoAtiva.numero_apolice}) para esta apólice. Deseja criar mesmo assim?`
+        );
+        if (!confirmar) {
+          setIsProcessing(false);
+          return;
+        }
+      }
+
       const calculated = await calculateDerivatives(processedData);
       setCalculatedData(calculated);
       setShowSummary(true);
@@ -245,7 +271,12 @@ export default function RenovarApolice() {
   const handleSaveRenovacao = async () => {
     setIsProcessing(true);
     try {
-      const cleanCpfCnpj = (value) => value.replace(/[^\d]/g, '');
+      const cleanCpfCnpj = (value) => {
+        const digits = String(value || '').replace(/[^\d]/g, '');
+        if (!digits) return digits;
+        if (digits.length <= 11) return digits.padStart(11, '0');
+        return digits.padStart(14, '0');
+      };
       
       // Criar nova apólice (renovação)
       const novaApoliceData = {
@@ -266,6 +297,10 @@ export default function RenovarApolice() {
         premio_bruto_total: parseCurrency(formData.premio_bruto),
         produtos: formData.produtos,
         id_objeto: formData.id_objeto,
+        filial_id: apoliceOriginal.filial_id,
+        filial_codigo_susep: apoliceOriginal.filial_codigo_susep,
+        filial_nome: apoliceOriginal.filial_nome,
+        filial_codigo: calculatedData.filialCodigo,
         // Campos de renovação
         renovacao_de: apoliceOriginal.id,
         numero_renovacao: (apoliceOriginal.numero_renovacao || 0) + 1,
@@ -287,7 +322,16 @@ export default function RenovarApolice() {
       });
 
       const novaApolice = await base44.entities.Apolice.create(novaApoliceData);
-      
+
+      // Atualizar contador sequencial e total da filial
+      const filialAtual = await base44.entities.Filial.filter({ id: calculatedData.filialId });
+      if (filialAtual.length > 0) {
+        await base44.entities.Filial.update(calculatedData.filialId, {
+          ultimo_numero_sequencial: calculatedData.novoSequencial,
+          total_apolices: (filialAtual[0].total_apolices || 0) + 1
+        });
+      }
+
       // Atualizar apólice original
       await base44.entities.Apolice.update(apoliceOriginal.id, {
         renovada: true,

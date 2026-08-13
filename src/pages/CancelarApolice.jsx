@@ -109,7 +109,15 @@ export default function CancelarApolice() {
         iof: calculosProporcionais.iofProporcional,
         status: 'cancelada'
       });
-      
+
+      // Decrementar contador da filial
+      if (apoliceOriginal.filial_id) {
+        const filiais = await base44.entities.Filial.filter({ id: apoliceOriginal.filial_id });
+        if (filiais.length > 0 && (filiais[0].total_apolices || 0) > 0) {
+          await base44.entities.Filial.update(apoliceOriginal.filial_id, { total_apolices: filiais[0].total_apolices - 1 });
+        }
+      }
+
       setSuccess(true);
     } catch (error) {
       setError("Erro ao cancelar apólice.");

@@ -50,12 +50,17 @@
 import ApoliceDetalhes from './pages/ApoliceDetalhes';
 import Apolices from './pages/Apolices';
 import CancelarApolice from './pages/CancelarApolice';
+import ConcilacaoFinanceira from './pages/ConcilacaoFinanceira';
 import Dashboard from './pages/Dashboard';
 import EditarFechamento from './pages/EditarFechamento';
 import EditarSinistro from './pages/EditarSinistro';
+import EmissaoLote from './pages/EmissaoLote';
 import FechamentoDetalhes from './pages/FechamentoDetalhes';
 import Fechamentos from './pages/Fechamentos';
+import GestaoFiliais from './pages/GestaoFiliais';
+import GestaoInadimplentes from './pages/GestaoInadimplentes';
 import GestaoUsuarios from './pages/GestaoUsuarios';
+import HistoricoConciliacoes from './pages/HistoricoConciliacoes';
 import Home from './pages/Home';
 import NovaApolice from './pages/NovaApolice';
 import NovoFechamento from './pages/NovoFechamento';
@@ -65,6 +70,8 @@ import RenovarApolice from './pages/RenovarApolice';
 import RevisarApolice from './pages/RevisarApolice';
 import SinistroDetalhes from './pages/SinistroDetalhes';
 import Sinistros from './pages/Sinistros';
+import VisualizarPDD from './pages/VisualizarPDD';
+import Configuracoes from './pages/Configuracoes';
 import __Layout from './Layout.jsx';
 
 
@@ -72,12 +79,17 @@ export const PAGES = {
     "ApoliceDetalhes": ApoliceDetalhes,
     "Apolices": Apolices,
     "CancelarApolice": CancelarApolice,
+    "ConcilacaoFinanceira": ConcilacaoFinanceira,
     "Dashboard": Dashboard,
     "EditarFechamento": EditarFechamento,
     "EditarSinistro": EditarSinistro,
+    "EmissaoLote": EmissaoLote,
     "FechamentoDetalhes": FechamentoDetalhes,
     "Fechamentos": Fechamentos,
+    "GestaoFiliais": GestaoFiliais,
+    "GestaoInadimplentes": GestaoInadimplentes,
     "GestaoUsuarios": GestaoUsuarios,
+    "HistoricoConciliacoes": HistoricoConciliacoes,
     "Home": Home,
     "NovaApolice": NovaApolice,
     "NovoFechamento": NovoFechamento,
@@ -87,6 +99,8 @@ export const PAGES = {
     "RevisarApolice": RevisarApolice,
     "SinistroDetalhes": SinistroDetalhes,
     "Sinistros": Sinistros,
+    "VisualizarPDD": VisualizarPDD,
+    "Configuracoes": Configuracoes,
 }
 
 export const pagesConfig = {

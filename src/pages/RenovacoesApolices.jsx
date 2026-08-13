@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Apolice } from "@/entities/Apolice";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,6 @@ import {
 import { format, differenceInDays } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import PeriodFilter from "../components/dashboard/PeriodFilter";
 
 const PRODUTOS_LABELS = {
   FR: "F&R",
@@ -70,7 +69,7 @@ export default function RenovacoesApolices() {
   const loadApolices = async () => {
     try {
       setIsLoading(true);
-      const data = await Apolice.list("-data_fim_apolice");
+      const data = await base44.entities.Apolice.filter({ natureza_movimento: { $ne: "Cancelamento" } }, "-data_fim_apolice");
       setApolices(data);
     } catch (error) {
       console.error("Erro ao carregar apólices:", error);
@@ -83,9 +82,6 @@ export default function RenovacoesApolices() {
     let filtered = [...apolices];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-
-    // Filtrar apenas apólices não canceladas
-    filtered = filtered.filter(a => !a.cancelada_para_revisao && a.status !== 'cancelada');
 
     // Filtro de busca
     if (searchTerm) {
@@ -383,7 +379,7 @@ export default function RenovacoesApolices() {
                         </TableCell>
                         <TableCell>
                           <div className="text-xs text-slate-600">
-                            {format(new Date(apolice.data_inicio_apolice), "dd/MM/yyyy")} - {format(new Date(apolice.data_fim_apolice), "dd/MM/yyyy")}
+                            {apolice.data_inicio_apolice ? format(new Date(apolice.data_inicio_apolice + 'T00:00:00'), "dd/MM/yyyy") : "—"} - {apolice.data_fim_apolice ? format(new Date(apolice.data_fim_apolice + 'T00:00:00'), "dd/MM/yyyy") : "—"}
                           </div>
                         </TableCell>
                         <TableCell>

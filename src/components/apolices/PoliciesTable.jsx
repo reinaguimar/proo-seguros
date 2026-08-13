@@ -1,4 +1,6 @@
 import React from 'react';
+import { maskPII, formatCPFCNPJ } from "../../utils/maskPII";
+import { usePermissoes } from "../auth/usePermissoes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,6 +63,10 @@ const isElegivelRenovacao = (apolice) => {
 };
 
 export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
+  const { user } = usePermissoes();
+  const isSuperAdmin = user?.perfil === 'super_administrador';
+  const exibirCPFCNPJ = (valor) => isSuperAdmin ? formatCPFCNPJ(valor) : maskPII(valor);
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -95,49 +101,93 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
 
   return (
     <div className="overflow-x-auto">
-      <Table>
+      <Table className="text-sm">
         <TableHeader>
-          <TableRow className="bg-slate-50 border-b border-slate-200">
-            <TableHead className="font-semibold text-slate-700 w-48">Número da Apólice</TableHead>
-            <TableHead className="font-semibold text-slate-700 w-32">CPF do Segurado</TableHead>
-            <TableHead className="font-semibold text-slate-700 w-28">Placa</TableHead>
-            <TableHead className="font-semibold text-slate-700 w-28">Início de Vigência</TableHead>
-            <TableHead className="font-semibold text-slate-700 w-28">Fim de Vigência</TableHead>
-            <TableHead className="font-semibold text-slate-700 w-48">Coberturas</TableHead>
-            <TableHead className="font-semibold text-slate-700 text-right w-24">Prêmio Bruto</TableHead>
-            <TableHead className="font-semibold text-slate-700 text-right w-20">IOF</TableHead>
-            <TableHead className="font-semibold text-slate-700 w-32">Movimentação</TableHead>
-            <TableHead className="font-semibold text-slate-700 w-48">Ações</TableHead>
+          <TableRow className="bg-slate-100/70 border-b border-slate-200">
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-48">
+              Número da Apólice
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-28">
+              Filial
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-32">
+              CPF do Segurado
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-28">
+              Placa
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-28">
+              Início de Vigência
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-28">
+              Fim de Vigência
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-48">
+              Coberturas
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 text-right w-24">
+              Prêmio Bruto
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 text-right w-20">
+              IOF
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-32">
+              Movimentação
+            </TableHead>
+            <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-48">
+              Ações
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {apolices.map((apolice) => (
-            <TableRow key={apolice.id} className="hover:bg-slate-50 transition-colors border-b border-slate-100 h-16">
+          {apolices.map((apolice) => {
+            const isCancelada = apolice.status === 'cancelada';
+            return (
+            <TableRow key={apolice.id} className={`hover:bg-slate-50/80 transition-colors border-b border-slate-200/70 h-16 ${isCancelada ? 'opacity-50' : ''}`}>
               <TableCell className="py-3">
-                <div className="flex flex-col">
-                  <span className="font-mono text-sm font-semibold text-slate-900">{apolice.numero_apolice}</span>
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-mono text-sm font-semibold tracking-tight ${isCancelada ? 'text-gray-400 line-through' : 'text-slate-900'}`}>{apolice.numero_apolice}</span>
+                    {isCancelada && (
+                      <span
+                        title={apolice.motivo_status || 'Cancelada'}
+                        className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200 cursor-help"
+                      >
+                        CANCELADA
+                      </span>
+                    )}
+                  </div>
                   {apolice.numero_renovacao > 0 && (
-                    <span className="text-xs text-green-600 font-medium">Renovação #{apolice.numero_renovacao}</span>
+                    <span className="text-xs text-blue-600 font-medium">Renovação #{apolice.numero_renovacao}</span>
                   )}
                 </div>
               </TableCell>
               <TableCell className="py-3">
+                {apolice.filial_nome ? (
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    apolice.filial_codigo === '10' || apolice.filial_nome?.toLowerCase().includes('new')
+                      ? 'border border-blue-200 bg-blue-50 text-blue-700'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}>{apolice.filial_nome}</span>
+                ) : <span className="text-gray-300">—</span>}
+              </TableCell>
+              <TableCell className="py-3">
                 <div className="flex items-center gap-2">
                   <Users className="w-3 h-3 text-slate-400" />
-                  <span className="text-sm font-medium text-slate-700 truncate">{apolice.id_segurado}</span>
+                  <span className="text-sm font-medium text-slate-700 truncate">{exibirCPFCNPJ(apolice.id_segurado)}</span>
                 </div>
               </TableCell>
               <TableCell className="py-3">
-                <span className="text-sm font-mono font-semibold text-slate-700 truncate">{apolice.id_objeto}</span>
+                <span className="text-sm font-mono font-semibold text-slate-700 truncate">{maskPII(apolice.id_objeto)}</span>
               </TableCell>
               <TableCell className="py-3">
                 <span className="text-sm text-slate-600">
-                  {format(new Date(apolice.data_inicio_apolice), "dd/MM/yy", { locale: ptBR })}
+                  {apolice.data_inicio_apolice ? format(new Date(apolice.data_inicio_apolice + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }) : "—"}
                 </span>
               </TableCell>
               <TableCell className="py-3">
                 <span className="text-sm text-slate-600">
-                  {format(new Date(apolice.data_fim_apolice), "dd/MM/yy", { locale: ptBR })}
+                  {apolice.data_fim_apolice ? format(new Date(apolice.data_fim_apolice + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }) : "—"}
                 </span>
               </TableCell>
               <TableCell className="py-3">
@@ -146,7 +196,7 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
                     <Badge 
                       key={produto}
                       variant="secondary"
-                      className={`text-xs px-2 py-0.5 border ${PRODUTOS_COLORS[produto]} whitespace-nowrap`}
+                      className={`text-[11px] px-2 py-0.5 border ${PRODUTOS_COLORS[produto]} whitespace-nowrap rounded-full`}
                     >
                       {produto === "FR" ? "F&R" : 
                        produto === "COL_PARCIAL" ? "Col.P" :
@@ -156,7 +206,7 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
                     </Badge>
                   ))}
                   {(apolice.produtos || []).length > 3 && (
-                    <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600">
+                  <Badge variant="secondary" className="text-[11px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full border-slate-200">
                       +{(apolice.produtos || []).length - 3}
                     </Badge>
                   )}
@@ -186,7 +236,7 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
                 <div className="flex gap-1 flex-wrap">
                   {/* Botão Ver Certificado - sempre visível */}
                   <Link to={createPageUrl(`ApoliceDetalhes?id=${apolice.id}`)}>
-                    <Button size="sm" variant="outline" className="hover:bg-green-50 border-green-200 text-green-700 px-2 py-1 text-xs">
+                    <Button size="sm" variant="outline" className="hover:bg-blue-50 border-slate-200 text-slate-700 px-2 py-1 text-xs">
                       <Eye className="w-3 h-3 mr-1" />
                       Ver
                     </Button>
@@ -222,7 +272,7 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
                 </div>
               </TableCell>
             </TableRow>
-          ))}
+          );})}
         </TableBody>
       </Table>
     </div>

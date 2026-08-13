@@ -40,6 +40,14 @@ Deno.serve(async (req) => {
         // Deletar permanentemente do banco de dados
         await base44.asServiceRole.entities.Apolice.delete(id_apolice);
 
+        // Decrementar contador da filial
+        if (apolice[0].filial_id) {
+            const filiais = await base44.asServiceRole.entities.Filial.filter({ id: apolice[0].filial_id });
+            if (filiais.length > 0 && (filiais[0].total_apolices || 0) > 0) {
+                await base44.asServiceRole.entities.Filial.update(apolice[0].filial_id, { total_apolices: filiais[0].total_apolices - 1 });
+            }
+        }
+
         console.log(`✅ Apólice ${apolice[0].numero_apolice} deletada permanentemente pelo Super Admin ${user.email}`);
 
         return Response.json({ 

@@ -83,13 +83,20 @@ export default function NovaApolice() {
     produtos: ["FR"], // "Furto e Roubo" é básico
     premio_bruto: '',
     id_objeto: '',
-    data_movimento: new Date().toISOString().split('T')[0]
+    data_movimento: new Date().toISOString().split('T')[0],
+    filial_id: '',
+    filial_codigo_susep: '',
+    filial_nome: '',
+    rcfv_lmi: 100000,
   });
   const [calculatedData, setCalculatedData] = useState(null);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
-  const [createdApolice, setCreatedApolice] = useState(null); // Novo estado
+  const [createdApolice, setCreatedApolice] = useState(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicateApolice, setDuplicateApolice] = useState(null);
+  const [cpfCnpjValidos, setCpfCnpjValidos] = useState(false);
 
   const CONFIG = {
     aliquota_iof: 0.0738,
@@ -98,48 +105,35 @@ export default function NovaApolice() {
   };
 
   const COBERTURAS_FIXAS = [
-    { id_cobertura: "001", ramo: 31, nome: "Furto", percentual: 0.195, produto: "FR" },
-    { id_cobertura: "002", ramo: 31, nome: "Roubo", percentual: 0.215, produto: "FR" },
-    { id_cobertura: "006", ramo: 42, nome: "RCF-V", percentual: 0, valor_fixo: 35.90, lmi_fixo: 100000, produto: "RCFV" },
-    { id_cobertura: "008", ramo: 31, nome: "Colisão Parcial", percentual: 0.28, produto: "COL_PARCIAL" },
+    { id_cobertura: "001", ramo: 31, nome: "Furto", percentual: 0.20, produto: "FR" },
+    { id_cobertura: "002", ramo: 31, nome: "Roubo", percentual: 0.20, produto: "FR" },
+    { id_cobertura: "006", ramo: 42, nome: "RCF-V", percentual: 0.11, produto: "RCFV" },
+    { id_cobertura: "008", ramo: 31, nome: "Colisão Parcial", percentual: 0.18, produto: "COL_PARCIAL" },
     { id_cobertura: "009", ramo: 31, nome: "Colisão Total", percentual: 0.22, produto: "COL_TOTAL" },
     { id_cobertura: "010", ramo: 31, nome: "Incendio e Fenomenos da Natureza", percentual: 0.09, produto: "INCENDIO" }
   ];
 
-  const cleanCpfCnpj = (value) => value.replace(/[^\d]/g, '');
+  const cleanCpfCnpj = (value) => {
+    const digits = String(value || '').replace(/[^\d]/g, '');
+    if (!digits) return digits;
+    // Normaliza: CPF = 11 dígitos, CNPJ = 14 dígitos
+    if (digits.length <= 11) return digits.padStart(11, '0');
+    return digits.padStart(14, '0');
+  };
 
-  const generatePolicyNumber = async (id_objeto) => {
-    if (!id_objeto) throw new Error("ID do objeto é obrigatório para gerar o número da apólice.");
-    let yyyyy = '00001', zzz = '001';
-    const existingPoliciesForObject = await base44.entities.Apolice.filter({ id_objeto });
-    if (existingPoliciesForObject.length > 0) {
-      zzz = (existingPoliciesForObject.length + 1).toString().padStart(3, '0');
-      const parts = existingPoliciesForObject[0].numero_apolice.split('.');
-      if (parts.length === 6) yyyyy = parts[4];
-    } else {
-      const allPolicies = await base44.entities.Apolice.list();
-      if (allPolicies.length > 0) {
-        const maxYYYYY = allPolicies.reduce((max, policy) => {
-          const parts = policy.numero_apolice.split('.');
-          if (parts.length === 6) {
-            const currentY = parseInt(parts[4], 10);
-            return currentY > max ? currentY : max;
-          }
-          return max;
-        }, 0);
-        yyyyy = (maxYYYYY + 1).toString().padStart(5, '0');
-      }
+  // NOTA: geração de número de apólice foi movida para a server function `gerarNumeroApolice`.
+  // Esta função é apenas um wrapper para manter compatibilidade com calculateDerivatives.
+  const generatePolicyNumber = async (id_objeto, filial_id, filial_codigo_susep) => {
+    const response = await base44.functions.invoke('gerarNumeroApolice', {
+      filial_id,
+      id_objeto,
+      filial_codigo_susep
+    });
+    if (!response.data?.sucesso) {
+      throw new Error(response.data?.error || 'Erro ao gerar número da apólice.');
     }
-    const year = new Date().getFullYear();
-    const numeroGerado = `110627.${year}.02.031.${yyyyy}.${zzz}`;
-    
-    // VALIDAÇÃO: Verificar se número já existe no banco
-    const duplicata = await base44.entities.Apolice.filter({ numero_apolice: numeroGerado });
-    if (duplicata.length > 0) {
-      throw new Error(`Número de apólice ${numeroGerado} já existe. Use Revisar/Editar ao invés de criar nova.`);
-    }
-    
-    return numeroGerado;
+    const { numero_apolice: numeroGerado, sequencial_usado: novoSequencial, filial_id: filialId, filial_codigo: filialCodigo } = response.data;
+    return { numeroGerado, novoSequencial, filialId, filialCodigo };
   };
 
   const calculateDerivatives = async (data) => {
@@ -147,22 +141,11 @@ export default function NovaApolice() {
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + CONFIG.prazo_em_dias); 
     
-    const numero_apolice = await generatePolicyNumber(data.id_objeto);
+    const { numeroGerado: numero_apolice, novoSequencial, filialId, filialCodigo } = await generatePolicyNumber(data.id_objeto, data.filial_id, data.filial_codigo_susep);
     const valor_corretagem_total = Math.round(data.premio_bruto * CONFIG.percentual_corretagem * 100) / 100;
 
-    let premio_bruto_distribuivel = data.premio_bruto;
-    const temRCFV = data.produtos.includes("RCFV");
-    if (temRCFV) {
-      const rcfvCoverage = COBERTURAS_FIXAS.find(c => c.produto === "RCFV");
-      if (rcfvCoverage) { // Ensure RCFV coverage is found
-        premio_bruto_distribuivel -= rcfvCoverage.valor_fixo;
-      }
-    }
-
     const produtosSelecionados = COBERTURAS_FIXAS.filter(c => data.produtos.includes(c.produto));
-    const percentual_total_selecionado_sem_RCFV = produtosSelecionados
-      .filter(c => c.produto !== "RCFV")
-      .reduce((sum, c) => sum + c.percentual, 0);
+    const percentual_total_selecionado = produtosSelecionados.reduce((sum, c) => sum + c.percentual, 0);
 
     const coberturas_calculadas = COBERTURAS_FIXAS.map((cobertura, index) => {
       let premio_bruto = 0;
@@ -171,18 +154,16 @@ export default function NovaApolice() {
       const isSelected = data.produtos.includes(cobertura.produto);
 
       if (isSelected) {
-        valor_maximo = cobertura.lmi_fixo || data.lmi_geral;
-        if (cobertura.produto === "RCFV") {
-          premio_bruto = cobertura.valor_fixo;
-        } else if (percentual_total_selecionado_sem_RCFV > 0) {
-          const percentual_relativo = cobertura.percentual / percentual_total_selecionado_sem_RCFV;
-          premio_bruto = Math.round(premio_bruto_distribuivel * percentual_relativo * 100) / 100;
+        valor_maximo = cobertura.produto === "RCFV" ? (data.rcfv_lmi || 100000) : data.lmi_geral;
+        if (percentual_total_selecionado > 0) {
+          const percentual_relativo = cobertura.percentual / percentual_total_selecionado;
+          premio_bruto = Math.round(data.premio_bruto * percentual_relativo * 100) / 100;
         }
       }
       
       const premio_comercial = Math.round((premio_bruto - (premio_bruto * CONFIG.aliquota_iof)) * 100) / 100;
       const corretagem = Math.round(premio_bruto * CONFIG.percentual_corretagem * 100) / 100;
-      const premio_retido = premio_comercial - corretagem;
+      const premio_retido = Math.round((premio_comercial - corretagem) * 100) / 100;
       
       return {
         idx: index + 1,
@@ -206,13 +187,30 @@ export default function NovaApolice() {
       iof_total, 
       premio_comercial_total,
       valor_corretagem_total,
-      coberturas_calculadas
+      coberturas_calculadas,
+      novoSequencial,
+      filialId,
+      filialCodigo
     };
   };
 
-  const handleSavePolicy = async () => {
+  const handleSavePolicy = async (force = false) => {
     setIsProcessing(true);
     try {
+      // Verificar apólice duplicada (CPF + Placa + vigência ativa) se não forçado
+      if (!force) {
+        const cpfCheck = cleanCpfCnpj(formData.id_segurado);
+        const existentes = await base44.entities.Apolice.filter({ id_segurado: cpfCheck, id_objeto: formData.id_objeto?.toUpperCase() });
+        const ativaConflitante = existentes.find(a =>
+          !a.cancelada_para_revisao && a.status !== 'cancelada' && a.data_fim_apolice >= formData.data_inicio
+        );
+        if (ativaConflitante) {
+          setDuplicateApolice(ativaConflitante);
+          setShowDuplicateModal(true);
+          setIsProcessing(false);
+          return;
+        }
+      }
       const apoliceData = {
         numero_apolice: calculatedData.numero_apolice,
         natureza_movimento: "01", // Mudança: agora é "01"
@@ -230,7 +228,12 @@ export default function NovaApolice() {
         lmi_geral: parseCurrency(formData.lmi_geral),
         premio_bruto_total: parseCurrency(formData.premio_bruto),
         produtos: formData.produtos,
-        id_objeto: formData.id_objeto
+        rcfv_lmi: formData.produtos.includes('RCFV') ? (formData.rcfv_lmi || 100000) : undefined,
+        id_objeto: formData.id_objeto,
+        filial_id: formData.filial_id,
+        filial_codigo_susep: formData.filial_codigo_susep,
+        filial_nome: formData.filial_nome,
+        filial_codigo: calculatedData.filialCodigo,
       };
       
       // Limpa propriedades nulas ou indefinidas antes de enviar
@@ -253,8 +256,18 @@ export default function NovaApolice() {
       });
       
       const newApolice = await base44.entities.Apolice.create(apoliceData);
-      setCreatedApolice(newApolice); // Salva a apólice criada no estado
-      setShowSummary(false); // Esconde o resumo
+
+      // Atualizar total de apólices da filial
+      // (ultimo_numero_sequencial já atualizado pela server function gerarNumeroApolice)
+      const filialAtual = await base44.entities.Filial.filter({ id: calculatedData.filialId });
+      if (filialAtual.length > 0) {
+        await base44.entities.Filial.update(calculatedData.filialId, {
+          total_apolices: (filialAtual[0].total_apolices || 0) + 1
+        });
+      }
+
+      setCreatedApolice(newApolice);
+      setShowSummary(false);
 
     } catch (error) {
       setError("Erro ao salvar apólice. Tente novamente.");
@@ -268,6 +281,7 @@ export default function NovaApolice() {
     const errors = [];
     switch (step) {
       case 1:
+        if (!formData.filial_id) errors.push("Selecione a filial emissora");
         if (!validateCpfCnpj(formData.id_segurado)) errors.push("CPF/CNPJ do segurado inválido");
         if (!validateCpfCnpj(formData.id_beneficiario)) errors.push("CPF/CNPJ do beneficiário inválido");
         if (!formData.id_objeto) errors.push("O ID do objeto (placa/chassi) é obrigatório");
@@ -336,7 +350,7 @@ export default function NovaApolice() {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1InfoGerais formData={formData} onInputChange={handleInputChange} />;
+        return <Step1InfoGerais formData={formData} onInputChange={handleInputChange} onValidityChange={setCpfCnpjValidos} />;
       case 2:
         return <Step2ValoresVigencia formData={formData} onInputChange={handleInputChange} />;
       case 3:
@@ -386,11 +400,29 @@ export default function NovaApolice() {
   if (showSummary) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6">
+            {showDuplicateModal && duplicateApolice && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+                <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4">
+                  <h3 className="text-lg font-bold text-orange-700 flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" /> Apólice Duplicada Detectada
+                  </h3>
+                  <p className="text-sm text-slate-600">Já existe uma apólice ativa com o mesmo CPF/CNPJ e veículo:</p>
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm">
+                    <p className="font-mono font-bold">{duplicateApolice.numero_apolice}</p>
+                    <p className="text-slate-500 text-xs mt-1">Vigência: {duplicateApolice.data_inicio_apolice} até {duplicateApolice.data_fim_apolice}</p>
+                  </div>
+                  <div className="flex gap-3 justify-end pt-2">
+                    <button className="px-4 py-2 border rounded-lg text-sm" onClick={() => { setShowDuplicateModal(false); setDuplicateApolice(null); }}>Cancelar</button>
+                    <button className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm" onClick={() => { setShowDuplicateModal(false); handleSavePolicy(true); }}>Emitir Mesmo Assim</button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="max-w-4xl mx-auto">
                 <PolicySummary
                     formData={formData}
                     calculatedData={calculatedData}
-                    onSave={handleSavePolicy}
+                    onSave={() => handleSavePolicy(false)}
                     onEdit={() => setShowSummary(false)}
                     isProcessing={isProcessing}
                 />
@@ -437,7 +469,7 @@ export default function NovaApolice() {
             Anterior
           </Button>
           {currentStep < STEPS.length ? (
-            <Button onClick={nextStep}>Próximo</Button>
+            <Button onClick={nextStep} disabled={currentStep === 1 && !cpfCnpjValidos}>Próximo</Button>
           ) : (
             <Button onClick={handleCalculateAndReview} disabled={isProcessing}>
               {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

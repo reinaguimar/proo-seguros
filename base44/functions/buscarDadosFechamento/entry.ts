@@ -20,15 +20,18 @@ Deno.serve(async (req) => {
     // Buscar todas as apólices
     const todasApolices = await base44.asServiceRole.entities.Apolice.list();
     
-    // Filtrar apólices CRIADAS na competência (created_date)
+    // Filtrar apólices pela data_inicio_apolice na competência (igual ao Dashboard)
     let apolicesCompetencia = todasApolices.filter(apolice => {
-      if (!apolice.created_date) return false;
-      const dataCriacao = new Date(apolice.created_date);
-      return dataCriacao >= dataInicio && dataCriacao <= dataFim;
+      if (!apolice.data_inicio_apolice) return false;
+      return apolice.data_inicio_apolice >= dataInicioStr && apolice.data_inicio_apolice <= dataFimStr;
     });
 
     // DEDUPLICAÇÃO: Excluir canceladas e deduplicar por numero_apolice
-    apolicesCompetencia = apolicesCompetencia.filter(a => !a.cancelada_para_revisao);
+    apolicesCompetencia = apolicesCompetencia.filter(a =>
+      !a.cancelada_para_revisao &&
+      a.natureza_movimento !== 'Cancelamento' &&
+      a.status !== 'cancelada'
+    );
     
     const apolicesMap = new Map();
     apolicesCompetencia.forEach(apolice => {
@@ -48,24 +51,34 @@ Deno.serve(async (req) => {
     
     apolicesCompetencia = Array.from(apolicesMap.values());
 
-    // Calcular prêmio emitido bruto
+    // Breakdown por filial — ADICIONADO após dedup existente, não substitui nada
+    const breakdownPorFilial = Array.from(
+      apolicesCompetencia.reduce((map, ap) => {
+        const key = ap.filial_id || 'sem_filial';
+        if (!map.has(key)) {
+          map.set(key, {
+            filial_id: key,
+            filial_nome: ap.filial_nome || '',
+            filial_codigo: ap.filial_codigo || '',
+            qtd_apolices: 0,
+            premio_bruto: 0,
+            iof: 0
+          });
+        }
+        const entry = map.get(key);
+        entry.qtd_apolices += 1;
+        entry.premio_bruto += ap.premio_bruto_total ?? 0;
+        entry.iof += ap.iof ?? 0;
+        return map;
+      }, new Map()).values()
+    );
+
+    // Calcular prêmio emitido bruto e IOF total do mês
     const premioEmitidoBruto = apolicesCompetencia.reduce((sum, a) => 
       sum + (a.premio_bruto_total || 0), 0
     );
-
-    // Calcular inadimplência (apólices DO MÊS vencidas há mais de 60 dias)
-    const hoje = new Date();
-    const data60DiasAtras = new Date(hoje);
-    data60DiasAtras.setDate(hoje.getDate() - 60);
-
-    const apolicesVencidas = apolicesCompetencia.filter(apolice => {
-      if (!apolice.data_fim_apolice) return false;
-      const dataFimApolice = new Date(apolice.data_fim_apolice);
-      return dataFimApolice < data60DiasAtras && !apolice.renovada;
-    });
-
-    const inadimplencia = apolicesVencidas.reduce((sum, a) => 
-      sum + (a.premio_bruto_total || 0), 0
+    const iofTotalMes = apolicesCompetencia.reduce((sum, a) => 
+      sum + (a.iof || 0), 0
     );
 
     // Buscar todos os sinistros
@@ -103,9 +116,11 @@ Deno.serve(async (req) => {
       sucesso: true,
       dados: {
         premio_emitido_bruto: Math.round(premioEmitidoBruto * 100) / 100,
-        inadimplencia: Math.round(inadimplencia * 100) / 100,
+        iof_total_mes: Math.round(iofTotalMes * 100) / 100,
+        inadimplencia: 0,
         sinistros_avisados: Math.round(sinistrosAvisados * 100) / 100,
         sinistros_pagos: Math.round(sinistrosPagos * 100) / 100,
+        breakdown_por_filial: breakdownPorFilial,
         estatisticas: {
           total_apolices: apolicesCompetencia.length,
           total_sinistros: sinistrosCompetencia.length,

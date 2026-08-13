@@ -11,10 +11,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
     
-    // Verificar permissão
-    if (user.perfil_sistema !== 'super_administrador') {
+    // Verificar permissão mínima
+    const perfilCaller = user.perfil_sistema || user.role;
+    if (!['super_administrador', 'administrador'].includes(perfilCaller)) {
       return Response.json({ 
-        error: 'Apenas Super Administradores podem alterar perfis' 
+        error: 'Apenas Administradores ou Super Administradores podem alterar perfis' 
       }, { status: 403 });
     }
     
@@ -35,6 +36,13 @@ Deno.serve(async (req) => {
     
     if (!usuarioAlvo) {
       return Response.json({ error: 'Usuário não encontrado' }, { status: 404 });
+    }
+
+    // Administradores não podem alterar Superadministradores
+    if (usuarioAlvo.perfil_sistema === 'super_administrador' && perfilCaller !== 'super_administrador') {
+      return Response.json({ 
+        error: 'Operação não permitida: administradores não podem alterar Superadministradores.' 
+      }, { status: 403 });
     }
     
     const perfil_anterior = usuarioAlvo.perfil_sistema;

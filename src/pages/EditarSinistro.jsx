@@ -144,7 +144,42 @@ export default function EditarSinistro() {
       };
 
       await base44.entities.Sinistro.update(sinistro.id, updateData);
-      
+
+      // Trilha de auditoria para cada campo alterado (complementar — não bloqueia)
+      try {
+        const user = await base44.auth.me();
+        const camposAuditados = ["status", "valor_inicial", "franquia", "data_sinistro", "data_abertura", "descricao", "observacoes"];
+        const valorNovoPorCampo = {
+          status: formData.status,
+          valor_inicial: parseCurrency(formData.valor_inicial),
+          franquia: parseCurrency(formData.franquia),
+          data_sinistro: formData.data_sinistro,
+          data_abertura: formData.data_abertura,
+          descricao: formData.descricao,
+          observacoes: formData.observacoes
+        };
+        for (const campo of camposAuditados) {
+          const valorAnterior = sinistro[campo] ?? "";
+          const valorNovo = valorNovoPorCampo[campo] ?? "";
+          if (String(valorAnterior) !== String(valorNovo)) {
+            await base44.entities.LogSinistro.create({
+              sinistro_id: sinistro.id,
+              numero_sinistro: sinistro.numero_sinistro,
+              acao: "dados_editados",
+              campo_alterado: campo,
+              valor_anterior: String(valorAnterior),
+              valor_novo: String(valorNovo),
+              usuario_id: user?.id,
+              usuario_nome: user?.full_name,
+              usuario_email: user?.email,
+              data_acao: new Date().toISOString()
+            });
+          }
+        }
+      } catch (logErr) {
+        console.error("Erro ao registrar log de edição de sinistro:", logErr);
+      }
+
       setSuccessMessage("Sinistro atualizado com sucesso!");
       setTimeout(() => {
         navigate(createPageUrl(`SinistroDetalhes?id=${sinistro.id}`));

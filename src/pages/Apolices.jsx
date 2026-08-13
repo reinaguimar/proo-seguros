@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { usePermissoes } from "../components/auth/usePermissoes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, PlusCircle, Download } from "lucide-react";
+import { Search, PlusCircle, Download, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from "xlsx";
@@ -20,16 +23,33 @@ import PoliciesTable from "../components/apolices/PoliciesTable";
 import PeriodFilter from "../components/dashboard/PeriodFilter";
 
 export default function Apolices() {
+  const { pode, user: currentUser, loading: loadingPermissions } = usePermissoes();
   const [apolices, setApolices] = useState([]);
+  const [filiaisDisponiveis, setFiliaisDisponiveis] = useState([]);
+  const [filialCtx, setFilialCtx] = useState("todas");
   const [filteredApolices, setFilteredApolices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filtro, setFiltro] = useState({ tipo: "rapido", valor: "todo_periodo" });
   const [filtroMovimentacao, setFiltroMovimentacao] = useState("todas");
+  const [quickFilter, setQuickFilter] = useState("todas");
+  const [mostrarCanceladas, setMostrarCanceladas] = useState(false);
+
+  const filiaisPermitidas = currentUser?.filiais_permitidas || [];
+  const isGlobal = filiaisPermitidas.length === 0;
+  const isUmaFilial = filiaisPermitidas.length === 1;
+  const showSeletor = isGlobal || filiaisPermitidas.length >= 2;
 
   useEffect(() => {
-    loadApolices();
-  }, []);
+    if (!loadingPermissions) {
+      loadApolices();
+      base44.entities.Filial.filter({ ativo: true }).then(all => {
+        const vis = isGlobal ? all : all.filter(f => filiaisPermitidas.includes(f.id));
+        setFiliaisDisponiveis(vis);
+        if (isUmaFilial && filiaisPermitidas.length === 1) setFilialCtx(filiaisPermitidas[0]);
+      }).catch(() => {});
+    }
+  }, [loadingPermissions, currentUser?.id]);
 
   const getMovimentacao = (apolice) => {
     if (apolice.cancelada_para_revisao || apolice.status === 'cancelada') {
@@ -43,77 +63,133 @@ export default function Apolices() {
 
   const applyFilters = useCallback(() => {
     let filtered = [...apolices];
+    const hasSearch = searchTerm.trim().length > 0;
 
-    // Filtro de busca
-    if (searchTerm) {
-      filtered = filtered.filter(apolice => 
-        apolice.numero_apolice?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        apolice.id_segurado?.includes(searchTerm) ||
-        apolice.id_beneficiario?.includes(searchTerm)
-      );
-    }
-
-    // Filtro de período - por data_inicio_apolice (vigência)
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    
-    let dataInicio, dataFim;
-    
-    if (filtro.tipo === "rapido") {
-      dataInicio = new Date();
-      dataInicio.setHours(0, 0, 0, 0);
-      dataFim = new Date(hoje);
-      
-      switch(filtro.valor) {
-        case "mes_atual":
-          dataInicio = startOfMonth(hoje);
-          break;
-        case "ultimos_3_meses":
-          dataInicio.setMonth(hoje.getMonth() - 3);
-          break;
-        case "ultimos_6_meses":
-          dataInicio.setMonth(hoje.getMonth() - 6);
-          break;
-        case "ano_atual":
-          dataInicio = new Date(hoje.getFullYear(), 0, 1);
-          break;
-        case "todo_periodo":
-          dataInicio = new Date(0);
-          break;
-        default:
-          dataInicio = startOfMonth(hoje);
+    // Quando há busca ativa, ignora filtros de canceladas/vigência/período/movimentação
+    // para que o usuário sempre encontre a apólice pesquisada
+    if (!hasSearch) {
+      // Ocultar canceladas por padrão
+      if (!mostrarCanceladas) {
+        filtered = filtered.filter(a => a.status !== 'cancelada');
       }
-    } else if (filtro.tipo === "intervalo") {
-      dataInicio = filtro.dataInicio;
-      dataFim = filtro.dataFim;
+
+      // Quick filter de vigência
+      if (quickFilter !== 'todas') {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const em30 = new Date(now); em30.setDate(em30.getDate() + 30);
+        filtered = filtered.filter(a => {
+          if (!a.data_fim_apolice) return false;
+          const d = new Date(a.data_fim_apolice);
+          if (quickFilter === 'ativas') return d >= now && !a.cancelada_para_revisao;
+          if (quickFilter === 'vencendo30') return d >= now && d <= em30;
+          if (quickFilter === 'vencidas') return d < now;
+          return true;
+        });
+      }
     }
-    
-    if (filtro.valor !== "todo_periodo") {
-      filtered = filtered.filter(a => {
-        if (!a.data_inicio_apolice) return false;
-        const dataInicioApolice = new Date(a.data_inicio_apolice);
-        return dataInicioApolice >= dataInicio && dataInicioApolice <= dataFim;
+
+    // Filtro automático por filiais permitidas
+    if (!isGlobal) {
+      filtered = filtered.filter(a => filiaisPermitidas.includes(a.filial_id));
+    }
+    // Filtro pela pill selecionada
+    if (filialCtx !== "todas") {
+      filtered = filtered.filter(a => a.filial_id === filialCtx);
+    }
+
+    // Filtro de busca — normaliza CPF/CNPJ e número de apólice (remove pontuação)
+    if (hasSearch) {
+      const term = searchTerm.toLowerCase().trim();
+      const termDigits = searchTerm.replace(/\D/g, '');
+      filtered = filtered.filter(apolice => {
+        const num = (apolice.numero_apolice || '').toLowerCase();
+        const numDigits = (apolice.numero_apolice || '').replace(/\D/g, '');
+        const segurado = (apolice.id_segurado || '').toLowerCase();
+        const seguradoDigits = (apolice.id_segurado || '').replace(/\D/g, '');
+        const beneficiario = (apolice.id_beneficiario || '').toLowerCase();
+        const beneficiarioDigits = (apolice.id_beneficiario || '').replace(/\D/g, '');
+        const placa = (apolice.id_objeto || '').toLowerCase();
+        return num.includes(term) ||
+               (termDigits && numDigits.includes(termDigits)) ||
+               segurado.includes(term) ||
+               (termDigits && seguradoDigits.includes(termDigits)) ||
+               beneficiario.includes(term) ||
+               (termDigits && beneficiarioDigits.includes(termDigits)) ||
+               placa.includes(term);
       });
     }
 
-    // Filtro de movimentação
-    if (filtroMovimentacao !== "todas") {
-      filtered = filtered.filter(a => getMovimentacao(a) === filtroMovimentacao);
+    // Filtro de período - por data_inicio_apolice (vigência)
+    if (!hasSearch) {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      let dataInicio, dataFim;
+
+      if (filtro.tipo === "rapido") {
+        dataInicio = new Date();
+        dataInicio.setHours(0, 0, 0, 0);
+        dataFim = new Date(hoje);
+
+        switch(filtro.valor) {
+          case "mes_atual":
+            dataInicio = startOfMonth(hoje);
+            break;
+          case "ultimos_3_meses":
+            dataInicio.setMonth(hoje.getMonth() - 3);
+            break;
+          case "ultimos_6_meses":
+            dataInicio.setMonth(hoje.getMonth() - 6);
+            break;
+          case "ano_atual":
+            dataInicio = new Date(hoje.getFullYear(), 0, 1);
+            break;
+          case "todo_periodo":
+            dataInicio = new Date(0);
+            break;
+          default:
+            dataInicio = startOfMonth(hoje);
+        }
+      } else if (filtro.tipo === "intervalo") {
+        dataInicio = filtro.dataInicio;
+        dataFim = filtro.dataFim;
+      }
+
+      if (filtro.valor !== "todo_periodo") {
+        filtered = filtered.filter(a => {
+          if (!a.data_inicio_apolice) return false;
+          const dataInicioApolice = new Date(a.data_inicio_apolice);
+          return dataInicioApolice >= dataInicio && dataInicioApolice <= dataFim;
+        });
+      }
+
+      // Filtro de movimentação
+      if (filtroMovimentacao !== "todas") {
+        filtered = filtered.filter(a => getMovimentacao(a) === filtroMovimentacao);
+      }
     }
 
     setFilteredApolices(filtered);
-  }, [apolices, searchTerm, filtro, filtroMovimentacao]);
+  }, [apolices, searchTerm, filtro, filtroMovimentacao, filialCtx, isGlobal, filiaisPermitidas.join(','), quickFilter, mostrarCanceladas]);
 
   useEffect(() => {
     applyFilters();
   }, [applyFilters]); // Now depends on the memoized applyFilters
 
   const loadApolices = async () => {
+    if (!pode('apolices', 'visualizar')) {
+      console.log("Usuário sem permissão para visualizar apólices");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       console.log("🔄 Carregando apólices...");
-      const data = await base44.entities.Apolice.list();
+      const data = await base44.entities.Apolice.filter({ natureza_movimento: { $ne: "Cancelamento" } });
       console.log("✅ Apólices carregadas:", data.length);
+      // Separar canceladas — exibidas apenas se toggle ativo
       setApolices(data);
     } catch (error) {
       console.error("❌ Erro ao carregar apólices");
@@ -142,11 +218,20 @@ export default function Apolices() {
       nomeArquivo = `apolices_${new Date().toISOString().split('T')[0]}`;
     }
 
-    // Preparar dados para Excel
-    const dadosExcel = filteredApolices.map(apolice => {
-      // Converter datas para objetos Date válidos
-      const dataInicio = apolice.data_inicio_apolice ? new Date(apolice.data_inicio_apolice) : null;
-      const dataFim = apolice.data_fim_apolice ? new Date(apolice.data_fim_apolice) : null;
+    // Preparar dados para Excel — respeitar toggle de canceladas
+    const apolicesParaExportar = filteredApolices.filter(a =>
+      a.natureza_movimento !== "Cancelamento" && (mostrarCanceladas || a.status !== 'cancelada')
+    );
+
+    const mapMovimentacao = (natureza) => {
+      if (!natureza || natureza === "01") return "Original";
+      return natureza; // "Renovação", "Emissão", etc. — exibe o valor real
+    };
+
+    const dadosExcel = apolicesParaExportar.map(apolice => {
+      // Usar T00:00:00 para evitar offset UTC nas datas de vigência
+      const dataInicio = apolice.data_inicio_apolice ? new Date(apolice.data_inicio_apolice + 'T00:00:00') : null;
+      const dataFim = apolice.data_fim_apolice ? new Date(apolice.data_fim_apolice + 'T00:00:00') : null;
       const dataCriacao = apolice.created_date ? new Date(apolice.created_date) : null;
       
       return {
@@ -158,7 +243,7 @@ export default function Apolices() {
         "Prêmio Bruto": apolice.premio_bruto_total || 0,
         "IOF": apolice.iof || 0,
         "Coberturas": (apolice.produtos || []).join(", "),
-        "Movimentação": getMovimentacao(apolice),
+        "Movimentação": mapMovimentacao(apolice.natureza_movimento),
         "Data Criação": dataCriacao && !isNaN(dataCriacao.getTime()) ? dataCriacao : ""
       };
     });
@@ -242,6 +327,24 @@ export default function Apolices() {
           </div>
         </div>
 
+        {/* Seletor de Filial (pills) */}
+        {showSeletor && filiaisDisponiveis.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setFilialCtx("todas")}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filialCtx === "todas" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            >Todas</button>
+            {filiaisDisponiveis.map(f => (
+              <button key={f.id} onClick={() => setFilialCtx(f.id)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filialCtx === f.id ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >{f.nome}</button>
+            ))}
+          </div>
+        )}
+        {isUmaFilial && filiaisDisponiveis.length === 1 && (
+          <div><span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600">Filial: {filiaisDisponiveis[0]?.nome}</span></div>
+        )}
+
         {/* Filters */}
         <div className="bg-white rounded-2xl shadow-sm border border-blue-100 p-6">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -249,7 +352,7 @@ export default function Apolices() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
-                  placeholder="Buscar por número da apólice, CPF/CNPJ..."
+                  placeholder="Buscar por número da apólice, CPF/CNPJ, placa..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 border-slate-200 focus:border-blue-500"
@@ -270,6 +373,30 @@ export default function Apolices() {
             </Select>
           </div>
         </div>
+
+        {/* Quick filter pills + toggle canceladas */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            {[{v:'todas',l:'Todas'},{v:'ativas',l:'Ativas'},{v:'vencendo30',l:'Vencendo em 30 dias'},{v:'vencidas',l:'Vencidas'}].map(({v,l}) => (
+              <button key={v} onClick={() => setQuickFilter(v)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${quickFilter === v ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                {l}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="toggle-canceladas"
+              checked={mostrarCanceladas}
+              onCheckedChange={setMostrarCanceladas}
+            />
+            <Label htmlFor="toggle-canceladas" className="text-xs text-slate-500 cursor-pointer select-none flex items-center gap-1">
+              <EyeOff className="w-3 h-3" /> Mostrar canceladas
+            </Label>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-500">Exibindo {filteredApolices.length} apólices</p>
 
         {/* Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">

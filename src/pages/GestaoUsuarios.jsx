@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,9 @@ import {
   Eye,
   EyeOff,
   Search,
-  Play
+  Play,
+  UserX,
+  Clock
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -67,6 +70,9 @@ export default function GestaoUsuarios() {
   const [perfisInicializados, setPerfisInicializados] = useState(false);
   const [editarPerfilModal, setEditarPerfilModal] = useState({ open: false, perfil: null });
   const [activeTab, setActiveTab] = useState("usuarios");
+  const [filiais, setFiliais] = useState([]);
+  const [filialDialog, setFilialDialog] = useState({ open: false, usuario: null, acesso: 'total', selecionadas: [], padrao: '' });
+  const [revogarDialog, setRevogarDialog] = useState({ open: false, usuario: null, loading: false });
 
   useEffect(() => {
     loadData();
@@ -77,15 +83,23 @@ export default function GestaoUsuarios() {
       setIsLoading(true);
       setError(null);
 
-      const allUsers = await base44.entities.User.list();
-      setUsuarios(allUsers);
+      const [usersResponse, allFiliais] = await Promise.all([
+        base44.functions.invoke('listarUsuarios', {}),
+        base44.entities.Filial.filter({ ativo: true }).catch(() => [])
+      ]);
+      setUsuarios(usersResponse.data?.usuarios || []);
+      setFiliais(allFiliais);
 
-      // Verificar se perfis foram inicializados
-      const allPerfis = await base44.entities.Perfil.list();
-      setPerfis(allPerfis);
-      setPerfisInicializados(allPerfis.length === 5);
+      try {
+        const allPerfis = await base44.entities.Perfil.list();
+        setPerfis(allPerfis);
+        setPerfisInicializados(allPerfis.length === 5);
+      } catch {
+        setPerfis([]);
+        setPerfisInicializados(false);
+      }
     } catch (err) {
-      setError("Erro ao carregar dados.");
+      setError("Erro ao carregar dados: " + err.message);
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -146,6 +160,39 @@ export default function GestaoUsuarios() {
     }
   };
 
+  const handleAbrirFilialDialog = (usuario) => {
+    const permitidas = usuario.filiais_permitidas || [];
+    setFilialDialog({
+      open: true,
+      usuario,
+      acesso: permitidas.length === 0 ? 'total' : 'especificas',
+      selecionadas: permitidas,
+      padrao: usuario.filial_id_padrao || ''
+    });
+  };
+
+  const handleSalvarFiliais = async () => {
+    const { usuario, acesso, selecionadas, padrao } = filialDialog;
+    const filiais_permitidas = acesso === 'total' ? [] : selecionadas;
+    const filial_id_padrao = acesso === 'total' ? '' : padrao;
+    await base44.auth.updateMe({ id: usuario.id, filiais_permitidas, filial_id_padrao });
+    // Use service role update via update entity
+    await base44.entities.User.update(usuario.id, { filiais_permitidas, filial_id_padrao });
+    setFilialDialog({ open: false, usuario: null, acesso: 'total', selecionadas: [], padrao: '' });
+    setSuccessMessage('Acesso por filial atualizado!');
+    await loadData();
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  const toggleFilialSelecionada = (filialId) => {
+    setFilialDialog(prev => {
+      const novo = prev.selecionadas.includes(filialId)
+        ? prev.selecionadas.filter(id => id !== filialId)
+        : [...prev.selecionadas, filialId];
+      return { ...prev, selecionadas: novo, padrao: novo.includes(prev.padrao) ? prev.padrao : '' };
+    });
+  };
+
   const handleAlterarPerfil = async (usuarioId, novoPerfil) => {
     try {
       setError(null);
@@ -184,6 +231,27 @@ export default function GestaoUsuarios() {
       }
     } catch (err) {
       setError("Erro ao inativar usuário: " + err.message);
+    }
+  };
+
+  const handleRevogarAcesso = async () => {
+    const usuario = revogarDialog.usuario;
+    if (!usuario) return;
+    setRevogarDialog(prev => ({ ...prev, loading: true }));
+    try {
+      const response = await base44.functions.invoke('revogarAcesso', { userId: usuario.id });
+      if (response.data?.sucesso) {
+        setSuccessMessage(`Acesso de ${usuario.full_name} revogado com sucesso.`);
+        setRevogarDialog({ open: false, usuario: null, loading: false });
+        await loadData();
+        setTimeout(() => setSuccessMessage(null), 4000);
+      } else {
+        setError(response.data?.error || 'Erro ao revogar acesso');
+        setRevogarDialog(prev => ({ ...prev, loading: false }));
+      }
+    } catch (err) {
+      setError('Erro ao revogar acesso: ' + err.message);
+      setRevogarDialog(prev => ({ ...prev, loading: false }));
     }
   };
 
@@ -234,7 +302,7 @@ export default function GestaoUsuarios() {
         </div>
 
         {/* Bootstrap Alert */}
-        {!perfisInicializados && (
+        {!perfisInicializados && isPerfil('super_administrador') && (
           <Alert className="bg-yellow-50 border-yellow-200">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-yellow-800">
@@ -252,19 +320,6 @@ export default function GestaoUsuarios() {
             </AlertDescription>
           </Alert>
         )}
-
-        {/* Botão de Correção Rápida */}
-        <Alert className="bg-blue-50 border-blue-200">
-          <Shield className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <div className="flex items-center justify-between">
-              <span><strong>Correção de Perfis:</strong> Clique para promover reinaldo.aguimar@oonseguradora.com a Super Admin e corrigir perfis indefinidos.</span>
-              <Button size="sm" onClick={handleCorrigirPerfis} className="bg-blue-600 hover:bg-blue-700">
-                <Shield className="w-3 h-3 mr-1" /> Corrigir Perfis Agora
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
 
         {/* Messages */}
         {successMessage && (
@@ -377,16 +432,19 @@ export default function GestaoUsuarios() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50">
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Perfil do Sistema</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Cadastro</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
+                       <TableHead>Nome</TableHead>
+                       <TableHead>Email</TableHead>
+                       <TableHead>Perfil Vinculado</TableHead>
+                       <TableHead>Status</TableHead>
+                       <TableHead>Filiais</TableHead>
+                       <TableHead>Último Acesso</TableHead>
+                       <TableHead>Ações</TableHead>
+                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {usuariosFiltrados.map((usuario) => (
+                  {usuariosFiltrados.map((usuario) => {
+                    const permitidas = usuario.filiais_permitidas || [];
+                    return (
                     <TableRow key={usuario.id} className={usuario.ativo === false ? 'bg-red-50' : ''}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -411,11 +469,10 @@ export default function GestaoUsuarios() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <PerfilBadge perfil={usuario.perfil_sistema || 'usuario'} />
-                          {usuario.perfil_fechamento && usuario.perfil_fechamento !== 'visualizador' && (
-                            <div className="text-xs text-slate-500">
-                              Fechamento: {usuario.perfil_fechamento}
-                            </div>
+                          {usuario.perfil_sistema ? (
+                            <PerfilBadge perfil={usuario.perfil_sistema} />
+                          ) : (
+                            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Sem perfil</Badge>
                           )}
                         </div>
                       </TableCell>
@@ -427,49 +484,84 @@ export default function GestaoUsuarios() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <Calendar className="w-4 h-4" />
-                          {format(new Date(usuario.created_date), "dd/MM/yyyy", { locale: ptBR })}
-                        </div>
+                        {permitidas.length === 0 ? (
+                          <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">Acesso Global</Badge>
+                        ) : (
+                          <span className="text-sm font-medium text-slate-700">{permitidas.length} filial{permitidas.length !== 1 ? 'is' : ''}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {usuario.last_login ? (
+                          <div className="flex items-center gap-1 text-sm text-slate-600">
+                            <Clock className="w-3 h-3" />
+                            {format(new Date(usuario.last_login), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-slate-400">Nunca acessou</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {usuario.id === currentUser?.id ? (
                           <span className="text-sm text-slate-500">Você mesmo</span>
-                        ) : pode('usuarios', 'gerenciar_perfis') && usuario.ativo !== false ? (
-                          <div className="flex gap-2">
-                            <Select
-                              value={usuario.perfil_sistema || 'usuario'}
-                              onValueChange={(value) => handleAlterarPerfil(usuario.id, value)}
-                            >
-                              <SelectTrigger className="w-48">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Object.entries(PERFIS_INFO).map(([key, info]) => (
-                                  <SelectItem key={key} value={key}>
-                                    {info.nome}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            
-                            {pode('usuarios', 'inativar') && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-red-200 text-red-700 hover:bg-red-50"
-                                onClick={() => setInativarDialog({ open: true, usuario, motivo: "" })}
-                              >
-                                Inativar
-                              </Button>
-                            )}
-                          </div>
-                        ) : (
+                        ) : pode('usuarios', 'gerenciar_perfis') && usuario.ativo !== false ? (() => {
+                          const isSuperadminAlvo = usuario.perfil_sistema === 'super_administrador';
+                          const callerIsSuperadmin = isPerfil('super_administrador');
+                          const bloqueado = isSuperadminAlvo && !callerIsSuperadmin;
+                          const tooltipMsg = "Superadministradores não podem ser alterados por administradores";
+                          return (
+                            <div className="flex flex-wrap gap-2">
+                              <div title={bloqueado ? tooltipMsg : undefined}>
+                                <Select
+                                  value={usuario.perfil_sistema || 'usuario'}
+                                  onValueChange={(value) => handleAlterarPerfil(usuario.id, value)}
+                                  disabled={bloqueado}
+                                >
+                                  <SelectTrigger className={`w-40 ${bloqueado ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.entries(PERFIS_INFO)
+                                      .filter(([key]) => key !== 'super_administrador' || callerIsSuperadmin)
+                                      .map(([key, info]) => (
+                                      <SelectItem key={key} value={key}>
+                                        {info.nome}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div title={bloqueado ? tooltipMsg : undefined}>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className={`border-blue-200 text-blue-700 hover:bg-blue-50 ${bloqueado ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  onClick={() => !bloqueado && handleAbrirFilialDialog(usuario)}
+                                  disabled={bloqueado}
+                                >
+                                  <Building2 className="w-3 h-3 mr-1" /> Filiais
+                                </Button>
+                              </div>
+                              {pode('usuarios', 'inativar') && (
+                                <div title={bloqueado ? tooltipMsg : undefined}>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className={`border-red-200 text-red-700 hover:bg-red-50 ${bloqueado ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    onClick={() => !bloqueado && setRevogarDialog({ open: true, usuario, loading: false })}
+                                    disabled={bloqueado}
+                                  >
+                                    <UserX className="w-3 h-3 mr-1" /> Revogar
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })() : (
                           <span className="text-sm text-slate-500">Sem permissão</span>
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  );})}
                 </TableBody>
               </Table>
             </div>
@@ -504,6 +596,32 @@ export default function GestaoUsuarios() {
           </TabsContent>
         </Tabs>
 
+        {/* Dialog Revogar Acesso */}
+        <Dialog open={revogarDialog.open} onOpenChange={(open) => setRevogarDialog(prev => ({ ...prev, open }))}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-700">
+                <UserX className="w-5 h-5" /> Revogar Acesso
+              </DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja revogar o acesso de <strong>{revogarDialog.usuario?.full_name}</strong>? Esta ação irá desativar a conta.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setRevogarDialog({ open: false, usuario: null, loading: false })}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRevogarAcesso}
+                disabled={revogarDialog.loading}
+              >
+                {revogarDialog.loading ? 'Revogando...' : 'Confirmar Revogação'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Dialog Inativar */}
         <Dialog open={inativarDialog.open} onOpenChange={(open) => setInativarDialog({ ...inativarDialog, open })}>
           <DialogContent>
@@ -534,6 +652,72 @@ export default function GestaoUsuarios() {
                 <Button variant="destructive" onClick={handleInativarUsuario}>
                   Confirmar Inativação
                 </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog Acesso por Filial */}
+        <Dialog open={filialDialog.open} onOpenChange={(open) => setFilialDialog(prev => ({ ...prev, open }))}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2"><Building2 className="w-5 h-5" /> Controle de Acesso por Filial</DialogTitle>
+              <DialogDescription>{filialDialog.usuario?.full_name}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label>Tipo de Acesso</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="acesso" value="total" checked={filialDialog.acesso === 'total'} onChange={() => setFilialDialog(prev => ({ ...prev, acesso: 'total', selecionadas: [], padrao: '' }))} />
+                    <span className="text-sm font-medium">Acesso Total</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="acesso" value="especificas" checked={filialDialog.acesso === 'especificas'} onChange={() => setFilialDialog(prev => ({ ...prev, acesso: 'especificas' }))} />
+                    <span className="text-sm font-medium">Filiais Específicas</span>
+                  </label>
+                </div>
+              </div>
+
+              {filialDialog.acesso === 'especificas' && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Selecionar Filiais</Label>
+                    <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
+                      {filiais.map(f => (
+                        <label key={f.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filialDialog.selecionadas.includes(f.id)}
+                            onChange={() => toggleFilialSelecionada(f.id)}
+                          />
+                          <span className="text-sm">{f.nome}</span>
+                          {f.tipo === 'matriz' && <Badge className="text-xs bg-blue-900 text-white">Matriz</Badge>}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {filialDialog.selecionadas.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>Filial Padrão</Label>
+                      <Select value={filialDialog.padrao} onValueChange={v => setFilialDialog(prev => ({ ...prev, padrao: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Selecione a filial padrão" /></SelectTrigger>
+                        <SelectContent>
+                          {filialDialog.selecionadas.map(id => {
+                            const f = filiais.find(f => f.id === id);
+                            return f ? <SelectItem key={id} value={id}>{f.nome}</SelectItem> : null;
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setFilialDialog({ open: false, usuario: null, acesso: 'total', selecionadas: [], padrao: '' })}>Cancelar</Button>
+                <Button onClick={handleSalvarFiliais}>Salvar</Button>
               </div>
             </div>
           </DialogContent>

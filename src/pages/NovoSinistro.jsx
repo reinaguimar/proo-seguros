@@ -24,7 +24,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 
-import CpfCnpjInput from "../components/nova-apolice/CpfCnpjInput";
+import CpfCnpjInput from "../components/nova-apolice/CpfCnpjInput.jsx";
 
 const validateCPF = (cpf) => {
   if (typeof cpf !== 'string') return false;
@@ -102,7 +102,7 @@ export default function NovoSinistro() {
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [dataAbertura, setDataAbertura] = useState(new Date().toISOString().split('T')[0]);
   const [valorInicial, setValorInicial] = useState("");
-  const [valorFranquia, setValorFranquia] = useState(0);
+  const [valorFranquia, setValorFranquia] = useState("");
   const [descricao, setDescricao] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -131,19 +131,17 @@ export default function NovoSinistro() {
     try {
       const cpfLimpo = cleanCpfCnpj(cpfSegurado);
       const dataSinistroObj = new Date(dataSinistro);
-      const todasApolices = await base44.entities.Apolice.list();
+      const todasApolices = await base44.entities.Apolice.filter({ natureza_movimento: { $ne: "Cancelamento" } });
 
       const apolicesVigentes = todasApolices.filter(apolice => {
         const cpfApolice = cleanCpfCnpj(apolice.id_segurado);
-        const dataInicio = new Date(apolice.data_inicio_apolice);
-        const dataFim = new Date(apolice.data_fim_apolice);
-        const estaCancelada = apolice.cancelada_para_revisao || apolice.status === 'cancelada';
+        const dataInicio = new Date(apolice.data_inicio_apolice + 'T00:00:00');
+        const dataFim = new Date(apolice.data_fim_apolice + 'T00:00:00');
 
         return (
           cpfApolice === cpfLimpo &&
           dataSinistroObj >= dataInicio &&
-          dataSinistroObj <= dataFim &&
-          !estaCancelada
+          dataSinistroObj <= dataFim
         );
       });
 
@@ -217,7 +215,16 @@ export default function NovoSinistro() {
     setIsSaving(true);
     try {
       const numeroSinistro = gerarNumeroSinistro();
-      
+
+      // Buscar filial da apólice selecionada de forma silenciosa
+      let filialId = "";
+      let filialNome = "";
+      try {
+        const apolice = await base44.entities.Apolice.get(apoliceSeleccionada.id);
+        filialId = apolice?.filial_id || "";
+        filialNome = apolice?.filial_nome || "";
+      } catch (_) {}
+
       const sinistroData = {
         numero_sinistro: numeroSinistro,
         data_sinistro: dataSinistro,
@@ -225,9 +232,11 @@ export default function NovoSinistro() {
         cpf_segurado: cleanCpfCnpj(cpfSegurado),
         id_apolice: apoliceSeleccionada.id,
         numero_apolice: apoliceSeleccionada.numero_apolice,
+        filial_id: filialId,
+        filial_nome: filialNome,
         produto_sinistrado: produtoSelecionado,
         valor_inicial: parseCurrency(valorInicial),
-        franquia: valorFranquia || 0,
+        franquia: parseFloat(valorFranquia) || 0,
         status: "aberto",
         descricao: descricao
       };
@@ -544,16 +553,15 @@ export default function NovoSinistro() {
                   </Label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                    <span className="absolute left-9 top-1/2 transform -translate-y-1/2 text-slate-500">R$</span>
                     <Input
                       id="franquia"
                       type="number"
-                      step="0.01"
                       min="0"
+                      step="0.01"
                       value={valorFranquia}
-                      onChange={(e) => setValorFranquia(parseFloat(e.target.value) || 0)}
-                      placeholder="0,00"
-                      className="pl-16 border-slate-200 focus:border-blue-500"
+                      onChange={(e) => setValorFranquia(e.target.value)}
+                      placeholder="0.00"
+                      className="pl-10 border-slate-200 focus:border-blue-500"
                     />
                   </div>
                 </div>

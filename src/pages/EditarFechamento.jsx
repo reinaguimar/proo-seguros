@@ -26,8 +26,10 @@ export default function EditarFechamento() {
 
   // Valores editáveis
   const [premioEmitidoBruto, setPremioEmitidoBruto] = useState("");
+  const [iofTotalMes, setIofTotalMes] = useState("");
   const [inadimplencia, setInadimplencia] = useState("");
   const [sinistrosPagos, setSinistrosPagos] = useState("");
+  const [breakdownPorFilial, setBreakdownPorFilial] = useState(null);
 
   useEffect(() => {
     loadFechamento();
@@ -49,6 +51,7 @@ export default function EditarFechamento() {
       
       // Preencher campos
       setPremioEmitidoBruto(fechamentoData.premio_emitido_bruto?.toString() || "");
+      setIofTotalMes(fechamentoData.iof_total_mes?.toString() || "");
       setInadimplencia(fechamentoData.inadimplencia?.toString() || "");
       setSinistrosPagos(fechamentoData.sinistros_pagos?.toString() || "");
     } catch (err) {
@@ -71,8 +74,10 @@ export default function EditarFechamento() {
       if (response.data?.sucesso) {
         const dados = response.data.dados;
         setPremioEmitidoBruto(dados.premio_emitido_bruto.toString());
+        setIofTotalMes((dados.iof_total_mes || 0).toString());
         setInadimplencia(dados.inadimplencia.toString());
         setSinistrosPagos(dados.sinistros_pagos.toString());
+        if (dados.breakdown_por_filial) setBreakdownPorFilial(dados.breakdown_por_filial);
         
         setSuccessMessage(
           `Dados carregados: ${dados.estatisticas.total_apolices} apólices, ` +
@@ -98,8 +103,10 @@ export default function EditarFechamento() {
       const response = await base44.functions.invoke('calcularFechamento', {
         fechamento_id: fechamento.id,
         premio_emitido_bruto: parseFloat(premioEmitidoBruto) || 0,
+        iof_total_mes: parseFloat(iofTotalMes) || 0,
         inadimplencia: parseFloat(inadimplencia) || 0,
-        sinistros_pagos: parseFloat(sinistrosPagos) || 0
+        sinistros_pagos: parseFloat(sinistrosPagos) || 0,
+        breakdown_por_filial: breakdownPorFilial
       });
 
       if (response.data?.sucesso) {
@@ -123,6 +130,7 @@ export default function EditarFechamento() {
     try {
       await base44.entities.FechamentoMensal.update(fechamento.id, {
         premio_emitido_bruto: parseFloat(premioEmitidoBruto) || 0,
+        iof_total_mes: parseFloat(iofTotalMes) || 0,
         inadimplencia: parseFloat(inadimplencia) || 0,
         sinistros_pagos: parseFloat(sinistrosPagos) || 0
       });
@@ -201,7 +209,7 @@ export default function EditarFechamento() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="premio_emitido">Prêmio Emitido Bruto</Label>
                 <Input
@@ -213,6 +221,20 @@ export default function EditarFechamento() {
                   disabled={fechamento.status !== 'rascunho'}
                   placeholder="0.00"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="iof_total">IOF Total do Mês</Label>
+                <Input
+                  id="iof_total"
+                  type="number"
+                  step="0.01"
+                  value={iofTotalMes}
+                  onChange={(e) => setIofTotalMes(e.target.value)}
+                  disabled={fechamento.status !== 'rascunho'}
+                  placeholder="0.00"
+                />
+                <p className="text-xs text-slate-400">Calculado automático ao buscar dados</p>
               </div>
 
               <div className="space-y-2">
@@ -242,7 +264,7 @@ export default function EditarFechamento() {
               </div>
             </div>
 
-            {fechamento.status === 'rascunho' && (
+            {(fechamento.status === 'rascunho' || fechamento.status === 'calculado') && (
               <div className="flex gap-3 pt-4 border-t">
                 <Button 
                   onClick={handleBuscarDados} 
@@ -297,10 +319,7 @@ export default function EditarFechamento() {
                 <span className="text-slate-600">Comissão Fixa:</span>
                 <span className="font-semibold">R$ {(fechamento.comissao_fixa_mga || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-600">Bônus Variável:</span>
-                <span className="font-semibold">R$ {(fechamento.bonus_variavel_mga || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-              </div>
+
               <div className="flex justify-between pt-2 border-t">
                 <span className="text-slate-900 font-semibold">Total:</span>
                 <span className="font-bold text-green-600">R$ {(fechamento.remuneracao_total_mga || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { usePermissoes } from "../components/auth/usePermissoes";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { maskPII } from "../utils/maskPII";
 import { 
   Search, 
   PlusCircle, 
@@ -31,7 +33,8 @@ import {
   FileText,
   AlertTriangle,
   Eye,
-  Edit
+  Edit,
+  RefreshCw
 } from "lucide-react";
 import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -55,69 +58,129 @@ const STATUS_INFO = {
 };
 
 export default function Sinistros() {
+  const { user: currentUser, loading: loadingPermissions } = usePermissoes();
   const [sinistros, setSinistros] = useState([]);
   const [filteredSinistros, setFilteredSinistros] = useState([]);
   const [gastosMap, setGastosMap] = useState({});
   const [apolicesMap, setApolicesMap] = useState({});
+  const [filiais, setFiliais] = useState([]);
+  const [filialCtx, setFilialCtx] = useState("todas");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     status: "all",
     produto: "all",
-    periodo: "all"
+    periodo: "all",
+    filial: "all"
   });
 
+  const filiaisPermitidas = currentUser?.filiais_permitidas || [];
+  const isGlobal = filiaisPermitidas.length === 0;
+  const isUmaFilial = filiaisPermitidas.length === 1;
+  const showSeletor = isGlobal || filiaisPermitidas.length >= 2;
+
   useEffect(() => {
-    loadSinistros();
-  }, []);
+    if (!loadingPermissions) {
+      loadSinistros();
+      base44.entities.Filial.filter({ ativo: true }).then(all => {
+        const vis = isGlobal ? all : all.filter(f => filiaisPermitidas.includes(f.id));
+        setFiliais(vis);
+        if (isUmaFilial && filiaisPermitidas.length === 1) setFilialCtx(filiaisPermitidas[0]);
+      }).catch(() => {});
+    }
+  }, [loadingPermissions, currentUser?.id]);
 
   useEffect(() => {
     applyFilters();
-  }, [sinistros, searchTerm, filters]);
+  }, [sinistros, searchTerm, filters, filialCtx, isGlobal, filiaisPermitidas.join(',')]);
 
   const loadSinistros = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const sinistrosData = await base44.entities.Sinistro.list("-created_date");
       setSinistros(sinistrosData);
 
-      // Carregar gastos para cada sinistro
-      const gastosPromises = sinistrosData.map(async (sinistro) => {
-        const gastos = await base44.entities.GastoSinistro.filter({ id_sinistro: sinistro.id });
-        return { id: sinistro.id, gastos };
-      });
+      let hasPartialError = false;
 
-      const gastosResults = await Promise.all(gastosPromises);
+      // Carregar gastos para cada sinistro (resiliente — allSettled)
+      const gastosResults = await Promise.allSettled(
+        sinistrosData.map(async (sinistro) => {
+          try {
+            const gastos = await base44.entities.GastoSinistro.filter({ id_sinistro: sinistro.id });
+            return { id: sinistro.id, gastos };
+          } catch (e) {
+            throw e;
+          }
+        })
+      );
       const gastosMapObj = {};
-      gastosResults.forEach(({ id, gastos }) => {
-        gastosMapObj[id] = gastos;
+      gastosResults.forEach((res) => {
+        if (res.status === 'fulfilled') {
+          gastosMapObj[res.value.id] = res.value.gastos;
+        } else {
+          hasPartialError = true;
+        }
       });
       setGastosMap(gastosMapObj);
 
-      // Carregar apólices para pegar as placas
+      // Carregar apólices para pegar as placas (resiliente — allSettled)
       const apolicesIds = [...new Set(sinistrosData.map(s => s.id_apolice).filter(Boolean))];
-      const apolicesPromises = apolicesIds.map(async (id) => {
-        try {
-          return await base44.entities.Apolice.get(id);
-        } catch {
-          return null;
+      const apolicesResults = await Promise.allSettled(
+        apolicesIds.map(async (id) => {
+          try {
+            return await base44.entities.Apolice.get(id);
+          } catch (e) {
+            throw e;
+          }
+        })
+      );
+      const apolicesMapObj = {};
+      apolicesResults.forEach((res) => {
+        if (res.status === 'fulfilled' && res.value) {
+          apolicesMapObj[res.value.id] = res.value;
+        } else {
+          hasPartialError = true;
         }
       });
-      const apolicesData = await Promise.all(apolicesPromises);
-      const apolicesMapObj = {};
-      apolicesData.filter(Boolean).forEach(a => {
-        apolicesMapObj[a.id] = a;
-      });
       setApolicesMap(apolicesMapObj);
+
+      if (hasPartialError) {
+        setError('partial');
+      }
     } catch (error) {
       console.error("Erro ao carregar sinistros:", error);
+      setError('total');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Ref sempre aponta para a versão mais recente de loadSinistros
+  const loadSinistrosRef = useRef(loadSinistros);
+  loadSinistrosRef.current = loadSinistros;
+
+  // Recarrega a lista quando a janela volta a ter foco (ex: voltar de editar/detalhes)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (!loadingPermissions) loadSinistrosRef.current();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [loadingPermissions]);
+
   const applyFilters = () => {
     let filtered = [...sinistros];
+
+    // Filtro automático por filiais permitidas
+    if (!isGlobal) {
+      filtered = filtered.filter(s => filiaisPermitidas.includes(s.filial_id));
+    }
+    // Filtro pela pill
+    if (filialCtx !== "todas") {
+      filtered = filtered.filter(s => s.filial_id === filialCtx);
+    }
 
     // Filtro de busca
     if (searchTerm) {
@@ -137,6 +200,8 @@ export default function Sinistros() {
     if (filters.produto !== "all") {
       filtered = filtered.filter(sinistro => sinistro.produto_sinistrado === filters.produto);
     }
+
+    // (filial já filtrada pelas pills acima)
 
     // Filtro de período
     if (filters.periodo !== "all") {
@@ -246,6 +311,23 @@ export default function Sinistros() {
           </div>
         </div>
 
+        {/* Banner de erro de carregamento */}
+        {error && (
+          <div className="flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 rounded-xl px-5 py-3">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+              <p className="text-sm text-amber-800 font-medium">
+                Não foi possível carregar todos os sinistros. Alguns dados podem estar incompletos.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => loadSinistros()}
+              className="border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0">
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              Tentar novamente
+            </Button>
+          </div>
+        )}
+
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-white shadow-sm border-orange-100">
@@ -316,6 +398,23 @@ export default function Sinistros() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Seletor de Filial (pills) */}
+        {showSeletor && filiais.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setFilialCtx("todas")}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filialCtx === "todas" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            >Todas</button>
+            {filiais.map(f => (
+              <button key={f.id} onClick={() => setFilialCtx(f.id)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filialCtx === f.id ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >{f.nome}</button>
+            ))}
+          </div>
+        )}
+        {isUmaFilial && filiais.length === 1 && (
+          <div><span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-600">Filial: {filiais[0]?.nome}</span></div>
+        )}
 
         {/* Filtros */}
         <Card className="shadow-sm border-orange-100">
@@ -398,12 +497,23 @@ export default function Sinistros() {
             ) : filteredSinistros.length === 0 ? (
               <div className="p-12 text-center">
                 <Shield className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                  Nenhum sinistro encontrado
-                </h3>
-                <p className="text-slate-500">
-                  Tente ajustar os filtros ou registre um novo sinistro.
-                </p>
+                {sinistros.length === 0 ? (
+                  <>
+                    <h3 className="text-lg font-semibold text-slate-700 mb-2">Nenhum sinistro registrado</h3>
+                    <p className="text-slate-500 max-w-sm mx-auto mb-6">Quando um sinistro for aberto, ele aparecerá aqui com status, produto sinistrado e histórico de gastos.</p>
+                    <Link to={createPageUrl('NovoSinistro')}>
+                      <Button className="bg-orange-600 hover:bg-orange-700">
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        Registrar Primeiro Sinistro
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-slate-600 mb-2">Nenhum sinistro encontrado</h3>
+                    <p className="text-slate-500">Tente ajustar os filtros ou registre um novo sinistro.</p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -411,6 +521,7 @@ export default function Sinistros() {
                   <TableHeader>
                     <TableRow className="bg-slate-50">
                       <TableHead className="font-semibold text-slate-700">Número</TableHead>
+                      <TableHead className="font-semibold text-slate-700">Filial</TableHead>
                       <TableHead className="font-semibold text-slate-700">Apólice</TableHead>
                       <TableHead className="font-semibold text-slate-700">Placa</TableHead>
                       <TableHead className="font-semibold text-slate-700">CPF/CNPJ</TableHead>
@@ -433,14 +544,23 @@ export default function Sinistros() {
                           <TableCell className="font-mono font-semibold text-sm">
                             {sinistro.numero_sinistro}
                           </TableCell>
+                          <TableCell>
+                            {sinistro.filial_nome ? (
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                filiais.find(f => f.id === sinistro.filial_id)?.tipo === 'matriz'
+                                  ? 'border border-blue-200 bg-blue-50 text-blue-700'
+                                  : 'bg-gray-100 text-gray-700'
+                              }`}>{sinistro.filial_nome}</span>
+                            ) : <span className="text-gray-300">—</span>}
+                          </TableCell>
                           <TableCell className="font-mono text-sm">
                             {sinistro.numero_apolice}
                           </TableCell>
                           <TableCell className="font-mono text-sm font-semibold">
-                            {apolicesMap[sinistro.id_apolice]?.id_objeto || "-"}
+                            {maskPII(apolicesMap[sinistro.id_apolice]?.id_objeto)}
                           </TableCell>
                           <TableCell className="font-mono text-sm">
-                            {sinistro.cpf_segurado}
+                            {maskPII(sinistro.cpf_segurado)}
                           </TableCell>
                           <TableCell className="text-sm">
                             {format(new Date(sinistro.data_sinistro), "dd/MM/yyyy", { locale: ptBR })}

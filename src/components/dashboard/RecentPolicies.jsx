@@ -28,23 +28,23 @@ export default function RecentPolicies({ apolices, isLoading }) {
   const recentPolicies = apolices.slice(0, 8);
 
   return (
-    <Card className="shadow-sm border border-blue-100">
-      <CardHeader className="border-b border-blue-100 p-6">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold text-slate-900">
+    <Card className="shadow-sm border border-slate-200">
+      <CardHeader className="border-b border-slate-100 px-6 py-5">
+        <CardTitle className="flex items-center gap-2 text-sm font-semibold text-slate-800">
           <FileText className="w-5 h-5 text-blue-600" />
           Apólices Recentes
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <Table>
+          <Table className="text-sm">
             <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead className="font-semibold text-slate-700">Número</TableHead>
-                <TableHead className="font-semibold text-slate-700">Segurado</TableHead>
-                <TableHead className="font-semibold text-slate-700">Data</TableHead>
-                <TableHead className="font-semibold text-slate-700">Produtos</TableHead>
-                <TableHead className="font-semibold text-slate-700 text-right">Prêmio</TableHead>
+              <TableRow className="bg-slate-100/70 border-b border-slate-200">
+                <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600">Número</TableHead>
+                <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600">Segurado</TableHead>
+                <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600">Data</TableHead>
+                <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600">Produtos</TableHead>
+                <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 text-right">Prêmio</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -66,33 +66,33 @@ export default function RecentPolicies({ apolices, isLoading }) {
                 </TableRow>
               ) : (
                 recentPolicies.map((apolice) => (
-                  <TableRow key={apolice.id} className="hover:bg-slate-50 transition-colors">
-                    <TableCell className="font-medium text-slate-900">
+                  <TableRow key={apolice.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-200/70">
+                    <TableCell className="py-3 font-medium text-slate-900 text-sm">
                       {apolice.numero_apolice}
                     </TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell className="py-3 text-slate-600 text-sm">
                       {apolice.id_segurado}
                     </TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell className="py-3 text-slate-600 text-sm">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {format(new Date(apolice.data_inicio_apolice), "dd/MM/yyyy", { locale: ptBR })}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-3">
                       <div className="flex gap-1 flex-wrap">
                         {(apolice.produtos || []).map(produto => (
                           <Badge 
                             key={produto}
                             variant="secondary"
-                            className={`text-xs ${PRODUTOS_COLORS[produto]}`}
+                            className={`text-[11px] px-2 py-0.5 border ${PRODUTOS_COLORS[produto]} rounded-full`}
                           >
                             {PRODUTOS_LABELS[produto]}
                           </Badge>
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-slate-900">
+                    <TableCell className="py-3 text-right font-semibold text-slate-900 text-sm">
                       <div className="flex items-center justify-end gap-1">
                         <DollarSign className="w-3 h-3" />
                         R$ {(apolice.premio_bruto_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
