@@ -1,0 +1,112 @@
+{
+  "name": "InadimplenciaGestao",
+  "type": "object",
+  "properties": {
+    "apolice_id": {
+      "type": "string",
+      "description": "ID da ap\u00f3lice (CHAVE \u00daNICA)"
+    },
+    "chave_grupo": {
+      "type": "string",
+      "description": "CPF|Placa (indexado mas n\u00e3o \u00fanico)"
+    },
+    "numero_apolice": {
+      "type": "string"
+    },
+    "cpf_cnpj": {
+      "type": "string"
+    },
+    "placa": {
+      "type": "string"
+    },
+    "status_financeiro_atual": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "inadimplente",
+        "cancelado",
+        "pago"
+      ],
+      "description": "Status financeiro da \u00faltima concilia\u00e7\u00e3o"
+    },
+    "status_atual": {
+      "type": "string",
+      "enum": [
+        "em_aberto",
+        "em_contato",
+        "negociacao",
+        "acordo_fechado",
+        "pago_confirmado",
+        "encerrado",
+        "cancelado_por_inadimplencia"
+      ],
+      "default": "em_aberto",
+      "description": "Status de cobran\u00e7a/gest\u00e3o"
+    },
+    "bloqueado_recalculo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se true, concilia\u00e7\u00f5es n\u00e3o alteram mais esse registro"
+    },
+    "data_bloqueio": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data_inicio_inadimplencia": {
+      "type": "string",
+      "format": "date"
+    },
+    "dias_inadimplencia": {
+      "type": "number",
+      "description": "Calculado: hoje - data_inicio_inadimplencia"
+    },
+    "responsavel": {
+      "type": "string"
+    },
+    "data_primeiro_contato": {
+      "type": "string",
+      "format": "date"
+    },
+    "data_ultimo_contato": {
+      "type": "string",
+      "format": "date"
+    },
+    "proxima_acao_em": {
+      "type": "string",
+      "format": "date"
+    },
+    "canal": {
+      "type": "string",
+      "enum": [
+        "whatsapp",
+        "telefone",
+        "email",
+        "outros"
+      ],
+      "default": "telefone"
+    },
+    "observacoes": {
+      "type": "string"
+    },
+    "valor_em_aberto": {
+      "type": "number"
+    },
+    "ultimo_lote_id": {
+      "type": "string"
+    },
+    "ultima_competencia": {
+      "type": "string"
+    },
+    "historico_lotes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "\u00daltimas 24 concilia\u00e7\u00f5es (limitado)"
+    }
+  },
+  "required": [
+    "apolice_id",
+    "status_atual"
+  ]
+}

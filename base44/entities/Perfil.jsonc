@@ -1,0 +1,267 @@
+{
+  "name": "Perfil",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome \u00fanico do perfil"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do perfil"
+    },
+    "ordem": {
+      "type": "number",
+      "description": "Ordem de exibi\u00e7\u00e3o"
+    },
+    "sistema": {
+      "type": "boolean",
+      "default": true,
+      "description": "Perfis do sistema n\u00e3o podem ser deletados"
+    },
+    "permissoes": {
+      "type": "object",
+      "description": "Objeto JSON com todas as permiss\u00f5es",
+      "properties": {
+        "dashboard": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            }
+          }
+        },
+        "apolices": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            },
+            "criar": {
+              "type": "boolean"
+            },
+            "editar": {
+              "type": "boolean"
+            },
+            "deletar": {
+              "type": "boolean",
+              "description": "Apenas Admin. Requer trilha de auditoria."
+            },
+            "renovar": {
+              "type": "boolean"
+            },
+            "cancelar": {
+              "type": "boolean",
+              "description": "A\u00e7\u00e3o prefer\u00edvel ao deletar"
+            },
+            "exportar": {
+              "type": "boolean"
+            }
+          }
+        },
+        "sinistros": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            },
+            "criar": {
+              "type": "boolean"
+            },
+            "editar": {
+              "type": "boolean"
+            },
+            "deletar": {
+              "type": "boolean",
+              "description": "Apenas Admin. Requer trilha de auditoria."
+            },
+            "adicionar_gastos": {
+              "type": "boolean"
+            },
+            "aprovar": {
+              "type": "boolean"
+            },
+            "negar": {
+              "type": "boolean"
+            }
+          }
+        },
+        "fechamentos": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            },
+            "criar": {
+              "type": "boolean"
+            },
+            "auditar": {
+              "type": "boolean"
+            },
+            "aprovar_mga": {
+              "type": "boolean",
+              "description": "Apenas Admin. Requer assinatura digital."
+            },
+            "aprovar_seguradora": {
+              "type": "boolean",
+              "description": "Apenas Admin. Requer assinatura digital."
+            },
+            "reabrir": {
+              "type": "boolean",
+              "description": "Apenas Admin. Requer justificativa e log detalhado."
+            },
+            "deletar": {
+              "type": "boolean",
+              "description": "Apenas Admin. Requer log de auditoria."
+            },
+            "exportar": {
+              "type": "boolean"
+            },
+            "enviar_seguradora": {
+              "type": "boolean"
+            }
+          }
+        },
+        "conciliacao": {
+          "type": "object",
+          "description": "Novo m\u00f3dulo: Concilia\u00e7\u00e3o Financeira",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            },
+            "carregar_arquivo": {
+              "type": "boolean",
+              "description": "Carregar e validar arquivo Excel"
+            },
+            "processar_lote": {
+              "type": "boolean",
+              "description": "Processar lote de concilia\u00e7\u00e3o"
+            },
+            "criar_gestao": {
+              "type": "boolean",
+              "description": "Criar gest\u00e3o de inadimplentes a partir do lote"
+            },
+            "visualizar_historico": {
+              "type": "boolean"
+            },
+            "exportar": {
+              "type": "boolean"
+            }
+          }
+        },
+        "pdd": {
+          "type": "object",
+          "description": "M\u00f3dulo PDD - Provis\u00e3o de Devedores Duvidosos",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            },
+            "calcular": {
+              "type": "boolean",
+              "description": "Calcular PDD e gerar compet\u00eancia"
+            },
+            "gerenciar_parametros": {
+              "type": "boolean",
+              "description": "Apenas Admin. Editar par\u00e2metros de PDD"
+            },
+            "visualizar_versoes": {
+              "type": "boolean",
+              "description": "Ver hist\u00f3rico de vers\u00f5es PDD com versionamento"
+            },
+            "exportar": {
+              "type": "boolean"
+            }
+          }
+        },
+        "inadimplentes": {
+          "type": "object",
+          "description": "Novo m\u00f3dulo: Gest\u00e3o de Inadimplentes",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            },
+            "editar_status": {
+              "type": "boolean",
+              "description": "Alterar status de cobran\u00e7a/gest\u00e3o"
+            },
+            "editar_responsavel": {
+              "type": "boolean"
+            },
+            "aplicar_aging": {
+              "type": "boolean",
+              "description": "Aplicar c\u00e1lculo de aging sob demanda"
+            },
+            "visualizar_pdd": {
+              "type": "boolean"
+            },
+            "exportar": {
+              "type": "boolean"
+            },
+            "adicionar_observacao": {
+              "type": "boolean"
+            }
+          }
+        },
+        "usuarios": {
+          "type": "object",
+          "properties": {
+            "visualizar": {
+              "type": "boolean"
+            },
+            "criar": {
+              "type": "boolean",
+              "description": "Apenas Admin"
+            },
+            "editar": {
+              "type": "boolean"
+            },
+            "editar_perfil": {
+              "type": "boolean",
+              "description": "Alterar perfil de usu\u00e1rio. Apenas Admin."
+            },
+            "inativar": {
+              "type": "boolean",
+              "description": "Requer log e justificativa"
+            },
+            "gerenciar_perfis": {
+              "type": "boolean",
+              "description": "Apenas Admin. Criar/editar perfis"
+            },
+            "ver_inativos": {
+              "type": "boolean"
+            },
+            "redefinir_senha": {
+              "type": "boolean",
+              "description": "Apenas Admin"
+            }
+          }
+        },
+        "sistema": {
+          "type": "object",
+          "properties": {
+            "acessar_logs": {
+              "type": "boolean"
+            },
+            "configuracoes": {
+              "type": "boolean",
+              "description": "Apenas Admin"
+            },
+            "backups": {
+              "type": "boolean",
+              "description": "Apenas Admin"
+            },
+            "sincronizar_dados": {
+              "type": "boolean",
+              "description": "Apenas Admin"
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "nome",
+    "descricao",
+    "permissoes"
+  ]
+}

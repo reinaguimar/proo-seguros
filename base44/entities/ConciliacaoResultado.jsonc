@@ -1,0 +1,72 @@
+{
+  "name": "ConciliacaoResultado",
+  "type": "object",
+  "properties": {
+    "lote_id": {
+      "type": "string",
+      "description": "ID do LoteConciliacao"
+    },
+    "competencia": {
+      "type": "string",
+      "description": "YYYY-MM"
+    },
+    "apolice_id": {
+      "type": "string",
+      "description": "ID original da Apolice"
+    },
+    "numero_apolice": {
+      "type": "string"
+    },
+    "cpf_cnpj_original": {
+      "type": "string"
+    },
+    "cpf_cnpj_normalizado": {
+      "type": "string"
+    },
+    "placa_original": {
+      "type": "string"
+    },
+    "placa_normalizada": {
+      "type": "string"
+    },
+    "chave_grupo": {
+      "type": "string",
+      "description": "CPF_normalizado|Placa_normalizada"
+    },
+    "status_financeiro": {
+      "type": "string",
+      "enum": [
+        "ativo",
+        "inadimplente",
+        "cancelado",
+        "pago",
+        "nao_classificado"
+      ]
+    },
+    "fonte_status": {
+      "type": "string",
+      "enum": [
+        "ativos",
+        "inadimplentes",
+        "cancelados",
+        "regra_pago",
+        "none"
+      ]
+    },
+    "eh_mais_recente_do_grupo": {
+      "type": "boolean"
+    },
+    "sequencia_no_grupo": {
+      "type": "number"
+    },
+    "total_apolices_no_grupo": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "lote_id",
+    "competencia",
+    "apolice_id",
+    "status_financeiro"
+  ]
+}

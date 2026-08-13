@@ -1,0 +1,84 @@
+{
+  "name": "GastoSinistro",
+  "type": "object",
+  "properties": {
+    "id_sinistro": {
+      "type": "string",
+      "description": "ID do sinistro relacionado"
+    },
+    "numero_sinistro": {
+      "type": "string",
+      "description": "N\u00famero do sinistro para refer\u00eancia"
+    },
+    "tipo_gasto": {
+      "type": "string",
+      "enum": [
+        "oficina",
+        "peca"
+      ],
+      "description": "Tipo do gasto: oficina ou pe\u00e7a"
+    },
+    "nome_fornecedor": {
+      "type": "string",
+      "description": "Nome do fornecedor/oficina"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do servi\u00e7o/pe\u00e7a"
+    },
+    "valor_total": {
+      "type": "number",
+      "description": "Valor total do gasto"
+    },
+    "data_nota_fiscal": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da nota fiscal"
+    },
+    "forma_pagamento": {
+      "type": "string",
+      "enum": [
+        "a_vista",
+        "parcelado"
+      ],
+      "description": "Forma de pagamento"
+    },
+    "numero_parcelas": {
+      "type": "number",
+      "description": "N\u00famero de parcelas (se parcelado)"
+    },
+    "datas_pagamento": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Datas dos pagamentos (\u00e0 vista ou parcelas)"
+    },
+    "valores_parcelas": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Valores de cada parcela"
+    },
+    "status_pagamento": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "parcialmente_pago",
+        "pago"
+      ],
+      "default": "pendente",
+      "description": "Status do pagamento"
+    }
+  },
+  "required": [
+    "id_sinistro",
+    "tipo_gasto",
+    "nome_fornecedor",
+    "valor_total",
+    "data_nota_fiscal",
+    "forma_pagamento"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "DocumentoSinistro",
+  "type": "object",
+  "properties": {
+    "id_sinistro": {
+      "type": "string",
+      "description": "ID do sinistro relacionado"
+    },
+    "numero_sinistro": {
+      "type": "string",
+      "description": "N\u00famero do sinistro para refer\u00eancia"
+    },
+    "tipo_documento": {
+      "type": "string",
+      "enum": [
+        "cnh_condutor",
+        "documento_veiculo",
+        "boletim_ocorrencia",
+        "carta_descricao",
+        "foto_colisao"
+      ],
+      "description": "Tipo do documento"
+    },
+    "nome_arquivo": {
+      "type": "string",
+      "description": "Nome original do arquivo"
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "URI do arquivo no storage privado"
+    },
+    "tipo_mime": {
+      "type": "string",
+      "description": "Tipo MIME do arquivo (image/jpeg, application/pdf, etc)"
+    },
+    "tamanho_bytes": {
+      "type": "number",
+      "description": "Tamanho do arquivo em bytes"
+    },
+    "data_upload": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora do upload"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o documento"
+    }
+  },
+  "required": [
+    "id_sinistro",
+    "tipo_documento",
+    "file_uri"
+  ]
+}

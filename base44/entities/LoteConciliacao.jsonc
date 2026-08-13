@@ -1,0 +1,84 @@
+{
+  "name": "LoteConciliacao",
+  "type": "object",
+  "properties": {
+    "competencia": {
+      "type": "string",
+      "description": "Formato YYYY-MM"
+    },
+    "data_processamento": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "processando",
+        "concluido",
+        "erro"
+      ],
+      "default": "processando"
+    },
+    "total_apolices_base": {
+      "type": "number",
+      "description": "Total de ap\u00f3lices na base Apolice no momento"
+    },
+    "total_ativo": {
+      "type": "number",
+      "default": 0
+    },
+    "total_inadimplente": {
+      "type": "number",
+      "default": 0
+    },
+    "total_cancelado": {
+      "type": "number",
+      "default": 0
+    },
+    "total_pago": {
+      "type": "number",
+      "default": 0
+    },
+    "total_nao_classificado": {
+      "type": "number",
+      "default": 0
+    },
+    "registros_validos_ativos": {
+      "type": "number",
+      "description": "Linhas v\u00e1lidas da planilha Ativos"
+    },
+    "registros_validos_inadimplentes": {
+      "type": "number"
+    },
+    "registros_validos_cancelados": {
+      "type": "number"
+    },
+    "grupos_marcados_ativo": {
+      "type": "number",
+      "description": "Quantos grupos \u00fanicos (CPF+PLACA) receberam status ativo"
+    },
+    "grupos_marcados_inadimplente": {
+      "type": "number"
+    },
+    "grupos_marcados_cancelado": {
+      "type": "number"
+    },
+    "alertas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Alertas de valida\u00e7\u00e3o"
+    },
+    "log_etapas": {
+      "type": "object",
+      "description": "Log JSON com timestamp de cada etapa"
+    },
+    "erro_mensagem": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "competencia"
+  ]
+}

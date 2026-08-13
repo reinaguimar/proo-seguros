@@ -1,0 +1,166 @@
+{
+  "name": "FechamentoMensal",
+  "type": "object",
+  "properties": {
+    "competencia_mes": {
+      "type": "number",
+      "description": "M\u00eas (1-12)"
+    },
+    "competencia_ano": {
+      "type": "number",
+      "description": "Ano (ex: 2025)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "rascunho",
+        "auditado",
+        "aprovado_mga",
+        "aprovado_seguradora",
+        "fechado"
+      ],
+      "default": "rascunho"
+    },
+    "premio_emitido_bruto": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 2.1 do Border\u00f4"
+    },
+    "inadimplencia": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 2.2 - Pr\u00eamios vencidos >60 dias"
+    },
+    "premio_arrecadado_liquido": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 2.3 - 2.1 menos 2.2"
+    },
+    "sinistros_avisados": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 3.1 - Informativo"
+    },
+    "sinistros_pagos": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 3.2 - Gastos efetivos"
+    },
+    "remuneracao_minima_seguradora": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 4.1 - 10.38% sobre pr\u00eamio"
+    },
+    "remuneracao_sinistralidade_seguradora": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 4.2 - 40% sobre sinistros pagos"
+    },
+    "remuneracao_aplicada_seguradora": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 4.3 - Maior entre 4.1 e 4.2"
+    },
+    "comissao_fixa_mga": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 5.1 - Parametriz\u00e1vel"
+    },
+    "lucro_operacional": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 5.2"
+    },
+    "bonus_variavel_mga": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 5.3 - Parametriz\u00e1vel"
+    },
+    "remuneracao_total_mga": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 5.4"
+    },
+    "saldo_tecnico_liquido": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 6.1"
+    },
+    "repasse_seguradora": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 6.2"
+    },
+    "retencao_mga": {
+      "type": "number",
+      "default": 0,
+      "description": "Item 6.3"
+    },
+    "percentual_comissao_mga": {
+      "type": "number",
+      "default": 10,
+      "description": "% para comiss\u00e3o fixa MGA (parametriz\u00e1vel)"
+    },
+    "percentual_bonus_mga": {
+      "type": "number",
+      "default": 3.8,
+      "description": "% para b\u00f4nus vari\u00e1vel MGA (parametriz\u00e1vel)"
+    },
+    "auditor_id": {
+      "type": "string"
+    },
+    "auditor_nome": {
+      "type": "string"
+    },
+    "observacoes_auditoria": {
+      "type": "string"
+    },
+    "data_auditoria": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "aprovacao_mga_user_id": {
+      "type": "string"
+    },
+    "aprovacao_mga_nome": {
+      "type": "string"
+    },
+    "aprovacao_mga_data": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "aprovacao_mga_hash": {
+      "type": "string"
+    },
+    "aprovacao_mga_observacao": {
+      "type": "string"
+    },
+    "aprovacao_seguradora_user_id": {
+      "type": "string"
+    },
+    "aprovacao_seguradora_nome": {
+      "type": "string"
+    },
+    "aprovacao_seguradora_data": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "aprovacao_seguradora_hash": {
+      "type": "string"
+    },
+    "aprovacao_seguradora_observacao": {
+      "type": "string"
+    },
+    "documento_pdf_url": {
+      "type": "string"
+    },
+    "detalhes_calculo": {
+      "type": "object",
+      "description": "Breakdown dos c\u00e1lculos"
+    }
+  },
+  "required": [
+    "competencia_mes",
+    "competencia_ano"
+  ]
+}

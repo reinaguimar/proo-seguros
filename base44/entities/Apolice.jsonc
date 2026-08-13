@@ -1,0 +1,274 @@
+{
+  "name": "Apolice",
+  "type": "object",
+  "properties": {
+    "numero_apolice": {
+      "type": "string",
+      "description": "N\u00famero da ap\u00f3lice gerado automaticamente"
+    },
+    "natureza_movimento": {
+      "type": "string",
+      "default": "Emiss\u00e3o",
+      "description": "Natureza do movimento"
+    },
+    "tipo_movimento": {
+      "type": "string",
+      "default": "01 - Emiss\u00e3o",
+      "description": "Tipo do movimento"
+    },
+    "valor_corretagem": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor da corretagem (sempre 0.00)"
+    },
+    "iof": {
+      "type": "number",
+      "description": "Valor do IOF calculado automaticamente"
+    },
+    "data_inicio_apolice": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio da ap\u00f3lice"
+    },
+    "data_fim_apolice": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de fim da ap\u00f3lice"
+    },
+    "data_inicio_cobertura": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio da cobertura"
+    },
+    "data_fim_cobertura": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de fim da cobertura"
+    },
+    "id_segurado": {
+      "type": "string",
+      "description": "CPF/CNPJ do segurado"
+    },
+    "id_beneficiario": {
+      "type": "string",
+      "description": "CPF/CNPJ do benefici\u00e1rio"
+    },
+    "seguro_intermitente": {
+      "type": "boolean",
+      "default": false,
+      "description": "Seguro intermitente"
+    },
+    "data_movimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do movimento"
+    },
+    "lmi_geral": {
+      "type": "number",
+      "description": "Limite m\u00e1ximo de indeniza\u00e7\u00e3o geral"
+    },
+    "premio_bruto_total": {
+      "type": "number",
+      "description": "Pr\u00eamio bruto total"
+    },
+    "produtos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Produtos/coberturas selecionados"
+    },
+    "rcfv_lmi": {
+      "type": "number",
+      "description": "LMI espec\u00edfico do RCF-V"
+    },
+    "id_objeto": {
+      "type": "string",
+      "description": "ID do objeto segurado (placa/chassi)"
+    },
+    "renovada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica se a ap\u00f3lice foi renovada"
+    },
+    "renovacao_de": {
+      "type": "string",
+      "description": "ID da ap\u00f3lice anterior (se for uma renova\u00e7\u00e3o)"
+    },
+    "id_apolice_renovacao": {
+      "type": "string",
+      "description": "ID da nova ap\u00f3lice criada na renova\u00e7\u00e3o"
+    },
+    "data_renovacao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que a renova\u00e7\u00e3o foi realizada"
+    },
+    "numero_renovacao": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero sequencial de renova\u00e7\u00f5es (0=original)"
+    },
+    "cobertura_1_id_cobertura": {
+      "type": "string"
+    },
+    "cobertura_1_ramo": {
+      "type": "number"
+    },
+    "cobertura_1_valor_maximo": {
+      "type": "number"
+    },
+    "cobertura_1_id_objeto": {
+      "type": "string"
+    },
+    "cobertura_1_premio_bruto": {
+      "type": "number"
+    },
+    "cobertura_1_premio_comercial": {
+      "type": "number"
+    },
+    "cobertura_1_premio_retido": {
+      "type": "number"
+    },
+    "cobertura_2_id_cobertura": {
+      "type": "string"
+    },
+    "cobertura_2_ramo": {
+      "type": "number"
+    },
+    "cobertura_2_valor_maximo": {
+      "type": "number"
+    },
+    "cobertura_2_id_objeto": {
+      "type": "string"
+    },
+    "cobertura_2_premio_bruto": {
+      "type": "number"
+    },
+    "cobertura_2_premio_comercial": {
+      "type": "number"
+    },
+    "cobertura_2_premio_retido": {
+      "type": "number"
+    },
+    "cobertura_3_id_cobertura": {
+      "type": "string"
+    },
+    "cobertura_3_ramo": {
+      "type": "number"
+    },
+    "cobertura_3_valor_maximo": {
+      "type": "number"
+    },
+    "cobertura_3_id_objeto": {
+      "type": "string"
+    },
+    "cobertura_3_premio_bruto": {
+      "type": "number"
+    },
+    "cobertura_3_premio_comercial": {
+      "type": "number"
+    },
+    "cobertura_3_premio_retido": {
+      "type": "number"
+    },
+    "cobertura_4_id_cobertura": {
+      "type": "string"
+    },
+    "cobertura_4_ramo": {
+      "type": "number"
+    },
+    "cobertura_4_valor_maximo": {
+      "type": "number"
+    },
+    "cobertura_4_id_objeto": {
+      "type": "string"
+    },
+    "cobertura_4_premio_bruto": {
+      "type": "number"
+    },
+    "cobertura_4_premio_comercial": {
+      "type": "number"
+    },
+    "cobertura_4_premio_retido": {
+      "type": "number"
+    },
+    "cobertura_5_id_cobertura": {
+      "type": "string"
+    },
+    "cobertura_5_ramo": {
+      "type": "number"
+    },
+    "cobertura_5_valor_maximo": {
+      "type": "number"
+    },
+    "cobertura_5_id_objeto": {
+      "type": "string"
+    },
+    "cobertura_5_premio_bruto": {
+      "type": "number"
+    },
+    "cobertura_5_premio_comercial": {
+      "type": "number"
+    },
+    "cobertura_5_premio_retido": {
+      "type": "number"
+    },
+    "cobertura_6_id_cobertura": {
+      "type": "string"
+    },
+    "cobertura_6_ramo": {
+      "type": "number"
+    },
+    "cobertura_6_valor_maximo": {
+      "type": "number"
+    },
+    "cobertura_6_id_objeto": {
+      "type": "string"
+    },
+    "cobertura_6_premio_bruto": {
+      "type": "number"
+    },
+    "cobertura_6_premio_comercial": {
+      "type": "number"
+    },
+    "cobertura_6_premio_retido": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "numero_apolice",
+    "data_inicio_apolice",
+    "id_segurado",
+    "id_beneficiario",
+    "lmi_geral",
+    "premio_bruto_total",
+    "id_objeto"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

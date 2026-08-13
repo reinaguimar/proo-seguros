@@ -1,0 +1,53 @@
+{
+  "name": "PDDParametros",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    },
+    "valor_medio_mensal": {
+      "type": "number",
+      "default": 217.67,
+      "description": "Ticket m\u00e9dio mensal"
+    },
+    "faixa_0_30_nome": {
+      "type": "string",
+      "default": "0-30 dias"
+    },
+    "faixa_0_30_percentual": {
+      "type": "number",
+      "default": 2
+    },
+    "faixa_31_60_nome": {
+      "type": "string",
+      "default": "31-60 dias"
+    },
+    "faixa_31_60_percentual": {
+      "type": "number",
+      "default": 10
+    },
+    "faixa_61_90_nome": {
+      "type": "string",
+      "default": "61-90 dias"
+    },
+    "faixa_61_90_percentual": {
+      "type": "number",
+      "default": 30
+    },
+    "faixa_90_mais_nome": {
+      "type": "string",
+      "default": "90+ dias"
+    },
+    "faixa_90_mais_percentual": {
+      "type": "number",
+      "default": 80
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

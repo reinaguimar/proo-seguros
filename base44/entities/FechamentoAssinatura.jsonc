@@ -1,0 +1,71 @@
+{
+  "name": "FechamentoAssinatura",
+  "type": "object",
+  "properties": {
+    "fechamento_id": {
+      "type": "string",
+      "description": "ID do FechamentoMensal"
+    },
+    "tipo_assinatura": {
+      "type": "string",
+      "enum": [
+        "mga",
+        "seguradora"
+      ],
+      "description": "Quem assinou"
+    },
+    "usuario_id": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio que assinou"
+    },
+    "usuario_nome": {
+      "type": "string"
+    },
+    "usuario_email": {
+      "type": "string"
+    },
+    "data_assinatura": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora da assinatura"
+    },
+    "hash_documento": {
+      "type": "string",
+      "description": "SHA-256 do documento assinado"
+    },
+    "hash_assinatura": {
+      "type": "string",
+      "description": "SHA-256 da assinatura digital"
+    },
+    "certificado_cn": {
+      "type": "string",
+      "description": "Common Name do certificado usado"
+    },
+    "certificado_issuer": {
+      "type": "string",
+      "description": "Emissor do certificado"
+    },
+    "metodo_assinatura": {
+      "type": "string",
+      "enum": [
+        "sha256",
+        "sha512"
+      ],
+      "default": "sha256"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP onde foi assinado"
+    },
+    "observacao": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "fechamento_id",
+    "tipo_assinatura",
+    "usuario_id",
+    "hash_documento",
+    "hash_assinatura"
+  ]
+}

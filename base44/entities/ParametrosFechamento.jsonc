@@ -1,0 +1,34 @@
+{
+  "name": "ParametrosFechamento",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do par\u00e2metro"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "percentual",
+        "valor_fixo",
+        "texto"
+      ],
+      "default": "percentual"
+    },
+    "valor": {
+      "type": "number",
+      "description": "Valor do par\u00e2metro"
+    },
+    "descricao": {
+      "type": "string"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "nome",
+    "valor"
+  ]
+}

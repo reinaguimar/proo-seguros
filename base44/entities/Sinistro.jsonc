@@ -1,0 +1,93 @@
+{
+  "name": "Sinistro",
+  "type": "object",
+  "properties": {
+    "numero_sinistro": {
+      "type": "string",
+      "description": "N\u00famero \u00fanico do sinistro gerado automaticamente"
+    },
+    "data_sinistro": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que ocorreu o sinistro"
+    },
+    "data_abertura": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de abertura do registro do sinistro"
+    },
+    "cpf_segurado": {
+      "type": "string",
+      "description": "CPF/CNPJ do segurado"
+    },
+    "id_apolice": {
+      "type": "string",
+      "description": "ID da ap\u00f3lice relacionada"
+    },
+    "numero_apolice": {
+      "type": "string",
+      "description": "N\u00famero da ap\u00f3lice relacionada"
+    },
+    "produto_sinistrado": {
+      "type": "string",
+      "enum": [
+        "FR",
+        "COL_PARCIAL",
+        "COL_TOTAL",
+        "INCENDIO",
+        "RCFV"
+      ],
+      "description": "Produto/cobertura que gerou o sinistro"
+    },
+    "valor_inicial": {
+      "type": "number",
+      "description": "Valor inicial estimado do sinistro"
+    },
+    "franquia": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor da franquia do sinistro"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aberto",
+        "em_analise",
+        "aprovado",
+        "em_reparo",
+        "concluido",
+        "negado"
+      ],
+      "default": "aberto",
+      "description": "Status atual do sinistro"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada do sinistro"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es gerais sobre o sinistro"
+    },
+    "relato_evento": {
+      "type": "string",
+      "description": "Relato detalhado de como o sinistro ocorreu"
+    },
+    "documentacao_completa": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica se todos os documentos obrigat\u00f3rios foram enviados"
+    },
+    "data_documentacao_completa": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data em que a documenta\u00e7\u00e3o foi completada"
+    }
+  },
+  "required": [
+    "data_sinistro",
+    "cpf_segurado",
+    "id_apolice",
+    "produto_sinistrado"
+  ]
+}

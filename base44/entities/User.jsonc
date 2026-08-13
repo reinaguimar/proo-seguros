@@ -1,0 +1,53 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "perfil_sistema": {
+      "type": "string",
+      "enum": [
+        "usuario",
+        "gerente",
+        "administrador",
+        "auditor",
+        "super_administrador"
+      ],
+      "default": "usuario",
+      "description": "Perfil de acesso do usu\u00e1rio no sistema"
+    },
+    "perfil_fechamento": {
+      "type": "string",
+      "enum": [
+        "admin_sistema",
+        "auditor",
+        "responsavel_mga",
+        "responsavel_seguradora",
+        "visualizador"
+      ],
+      "default": "visualizador",
+      "description": "Perfil espec\u00edfico para m\u00f3dulo de fechamento (mantido por compatibilidade)"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se false, usu\u00e1rio n\u00e3o pode acessar o sistema"
+    },
+    "data_inativacao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o usu\u00e1rio foi inativado"
+    },
+    "inativado_por": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio que realizou a inativa\u00e7\u00e3o"
+    },
+    "motivo_inativacao": {
+      "type": "string",
+      "description": "Motivo da inativa\u00e7\u00e3o do usu\u00e1rio"
+    }
+  },
+  "required": [
+    "data_inativacao",
+    "inativado_por",
+    "motivo_inativacao"
+  ]
+}

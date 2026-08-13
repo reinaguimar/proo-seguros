@@ -1,0 +1,41 @@
+{
+  "name": "PDDCompetencia",
+  "type": "object",
+  "properties": {
+    "competencia": {
+      "type": "string"
+    },
+    "lote_id": {
+      "type": "string"
+    },
+    "data_calculo": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_inadimplentes": {
+      "type": "number",
+      "default": 0
+    },
+    "pdd_estimado": {
+      "type": "number",
+      "default": 0
+    },
+    "criterio": {
+      "type": "string"
+    },
+    "breakdown_por_faixa": {
+      "type": "object",
+      "description": "Detalhamento por faixa de dias"
+    },
+    "ticket_medio_usado": {
+      "type": "number"
+    },
+    "parametros_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "competencia",
+    "lote_id"
+  ]
+}
