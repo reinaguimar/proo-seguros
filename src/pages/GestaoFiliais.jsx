@@ -30,10 +30,15 @@ const ESTADOS_BR = [
 
 const PRODUTOS_FILIAL = [
   { value: "FR", label: "Furto e Roubo" },
-  { value: "RCFV", label: "RCF-V (Resp. Civil Facultativa)" },
   { value: "COL_PARCIAL", label: "Colisão Parcial" },
   { value: "COL_TOTAL", label: "Colisão Total" },
   { value: "INCENDIO", label: "Incêndio e Fenômenos da Natureza" },
+];
+
+const RCFV_LMIS = [
+  { value: 30000, label: "RCF-V — R$ 30.000" },
+  { value: 50000, label: "RCF-V — R$ 50.000" },
+  { value: 100000, label: "RCF-V — R$ 100.000" },
 ];
 
 const TODOS_PRODUTOS = ["FR", "RCFV", "COL_PARCIAL", "COL_TOTAL", "INCENDIO"];
@@ -48,6 +53,7 @@ const filialVazio = {
   ativo: true,
   tipo: "sub_representante",
   produtos_permitidos: [...TODOS_PRODUTOS],
+  rcfv_lmis_permitidos: [30000, 50000, 100000],
 };
 
 export default function GestaoFiliais() {
@@ -104,6 +110,9 @@ export default function GestaoFiliais() {
       produtos_permitidos: filial.produtos_permitidos && filial.produtos_permitidos.length > 0
         ? [...filial.produtos_permitidos]
         : [...TODOS_PRODUTOS],
+      rcfv_lmis_permitidos: filial.rcfv_lmis_permitidos && filial.rcfv_lmis_permitidos.length > 0
+        ? [...filial.rcfv_lmis_permitidos]
+        : [30000, 50000, 100000],
     });
     setErro("");
     setModalAberto(true);
@@ -150,6 +159,13 @@ export default function GestaoFiliais() {
     const conflito = existentes.find(f => f.id !== filialEditando?.id);
     if (conflito) return setErro(`Já existe uma filial com o código "${form.codigo_filial.trim().toUpperCase()}". Cada filial deve ter um código único.`);
 
+    // Sincronizar RCFV em produtos_permitidos com rcfv_lmis_permitidos
+    const lmisRcfv = form.rcfv_lmis_permitidos || [];
+    const outrosProdutos = (form.produtos_permitidos || []).filter(p => p !== "RCFV");
+    const produtosPermitidosFinal = lmisRcfv.length > 0
+      ? [...outrosProdutos, "RCFV"]
+      : outrosProdutos;
+
     setSalvando(true);
     const dados = {
       nome: form.nome.trim(),
@@ -160,7 +176,8 @@ export default function GestaoFiliais() {
       estado: form.estado,
       ativo: form.ativo,
       tipo: form.tipo || "sub_representante",
-      produtos_permitidos: form.produtos_permitidos || [],
+      produtos_permitidos: produtosPermitidosFinal,
+      rcfv_lmis_permitidos: lmisRcfv,
     };
 
     // Regra de matriz única: se salvando como matriz, rebaixar a matriz atual
@@ -449,6 +466,29 @@ export default function GestaoFiliais() {
                     <span className="text-sm">{produto.label}</span>
                   </label>
                 ))}
+
+                {/* Subgrupo RCF-V por LMI */}
+                <div className="mt-2 pt-2 border-t border-slate-100">
+                  <p className="text-sm font-medium text-slate-700 mb-2">RCF-V (Danos a Terceiros)</p>
+                  <div className="ml-4 space-y-2">
+                    {RCFV_LMIS.map(opcao => (
+                      <label key={opcao.value} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={(form.rcfv_lmis_permitidos || []).includes(opcao.value)}
+                          onChange={() => {
+                            const atual = form.rcfv_lmis_permitidos || [];
+                            const novo = atual.includes(opcao.value)
+                              ? atual.filter(v => v !== opcao.value)
+                              : [...atual, opcao.value];
+                            setForm(f => ({ ...f, rcfv_lmis_permitidos: novo }));
+                          }}
+                        />
+                        <span className="text-sm">{opcao.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

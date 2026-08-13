@@ -12,7 +12,6 @@ const PRODUTOS = [
 ];
 
 const RCFV_OPCOES = [
-  { lmi: 15000, label: "R$ 15.000,00", premio: 35.90 },
   { lmi: 30000, label: "R$ 30.000,00", premio: 35.90 },
   { lmi: 50000, label: "R$ 50.000,00", premio: 35.90 },
   { lmi: 100000, label: "R$ 100.000,00", premio: 35.90 },
@@ -20,18 +19,23 @@ const RCFV_OPCOES = [
 
 export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXAS }) {
   const [produtosPermitidos, setProdutosPermitidos] = useState(null);
+  const [rcfvLmisPermitidos, setRcfvLmisPermitidos] = useState(null);
 
   useEffect(() => {
     const carregarFilial = async () => {
       if (!formData.filial_id) {
         setProdutosPermitidos(null);
+        setRcfvLmisPermitidos(null);
         return;
       }
       try {
         const filiais = await base44.entities.Filial.filter({ id: formData.filial_id });
-        setProdutosPermitidos(filiais[0]?.produtos_permitidos || null);
+        const filial = filiais[0];
+        setProdutosPermitidos(filial?.produtos_permitidos || null);
+        setRcfvLmisPermitidos(filial?.rcfv_lmis_permitidos || null);
       } catch {
         setProdutosPermitidos(null);
+        setRcfvLmisPermitidos(null);
       }
     };
     carregarFilial();
@@ -53,16 +57,28 @@ export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXA
     }
   }, [bloqueadosKey]);
 
+  // Limites de RCF-V habilitados para a filial (compatibilidade: vazio = todos)
+  const lmisHabilitados = (rcfvLmisPermitidos && rcfvLmisPermitidos.length > 0)
+    ? RCFV_OPCOES.filter(o => rcfvLmisPermitidos.includes(o.lmi))
+    : RCFV_OPCOES;
+
   const rcfvSelecionado = (formData.produtos || []).includes("RCFV");
-  const rcfvLmi = formData.rcfv_lmi || 100000;
+  const rcfvLmi = formData.rcfv_lmi || (lmisHabilitados[0]?.lmi ?? 100000);
+
+  // Se o rcfv_lmi atual não estiver entre os habilitados, ajustar para o primeiro
+  useEffect(() => {
+    if (rcfvSelecionado && lmisHabilitados.length > 0 && !lmisHabilitados.some(o => o.lmi === rcfvLmi)) {
+      onInputChange('rcfv_lmi', lmisHabilitados[0].lmi);
+    }
+  }, [rcfvLmisPermitidos]);
 
   const handleProdutoToggle = (produto, checked) => {
     const newProdutos = checked
       ? [...(formData.produtos || []), produto]
       : (formData.produtos || []).filter(p => p !== produto);
     onInputChange('produtos', newProdutos);
-    if (produto === "RCFV" && checked && !formData.rcfv_lmi) {
-      onInputChange('rcfv_lmi', 100000);
+    if (produto === "RCFV" && checked) {
+      onInputChange('rcfv_lmi', lmisHabilitados[0]?.lmi ?? 100000);
     }
   };
 
@@ -105,7 +121,7 @@ export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXA
             <div className="ml-7 mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">Selecione o Limite Máximo de Indenização:</p>
               <div className="flex flex-wrap gap-2">
-                {RCFV_OPCOES.map(opcao => (
+                {lmisHabilitados.map(opcao => (
                   <button
                     key={opcao.lmi}
                     type="button"
@@ -120,7 +136,7 @@ export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXA
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-slate-500 mt-2">LMI selecionado: <strong>{RCFV_OPCOES.find(o => o.lmi === rcfvLmi)?.label}</strong></p>
+              <p className="text-xs text-slate-500 mt-2">LMI selecionado: <strong>{lmisHabilitados.find(o => o.lmi === rcfvLmi)?.label || '—'}</strong></p>
             </div>
           )}
         </div>

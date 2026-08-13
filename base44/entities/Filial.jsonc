@@ -57,6 +57,13 @@
       },
       "description": "Produtos que esta filial pode comercializar na ap\u00f3lice. Valores: FR, RCFV, COL_PARCIAL, COL_TOTAL, INCENDIO"
     },
+    "rcfv_lmis_permitidos": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Limites de RCF-V (LMI) que esta filial pode comercializar. Valores poss\u00edveis: 30000, 50000, 100000"
+    },
     "logo_url": {
       "type": "string",
       "description": "URL da logo da filial para uso no certificado"
