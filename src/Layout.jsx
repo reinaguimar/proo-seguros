@@ -68,8 +68,21 @@ const navGroups = [
 export default function Layout({ children }) {
   const location = useLocation();
   const { user: currentUser, pode, loading: isLoadingUser } = usePermissoes();
-  const userNome = currentUser?.nome || currentUser?.name || "Charles Hall";
+  const userNome = currentUser?.nome || currentUser?.name || "Usuário";
   const userCargo = currentUser?.cargo || "Designer";
+  const [matriz, setMatriz] = useState(null);
+
+  useEffect(() => {
+    const carregarMatriz = async () => {
+      try {
+        const matrizes = await base44.entities.Filial.filter({ tipo: "matriz" });
+        setMatriz(matrizes[0] || null);
+      } catch {
+        setMatriz(null);
+      }
+    };
+    carregarMatriz();
+  }, []);
 
   return (
     <SidebarProvider>
@@ -77,12 +90,32 @@ export default function Layout({ children }) {
         <Sidebar className="border-r border-sidebar-border/70 bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))]">
           <SidebarHeader className="border-b border-sidebar-border/70 px-6 py-6">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/30">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+              {matriz?.logo_url ? (
+                <img
+                  src={matriz.logo_url}
+                  alt={matriz.nome}
+                  className="w-11 h-11 rounded-xl object-contain p-1"
+                  style={{ backgroundColor: matriz.cor_primaria || "transparent" }}
+                />
+              ) : matriz?.cor_primaria ? (
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
+                  style={{ backgroundColor: matriz.cor_primaria }}
+                >
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+              ) : (
+                <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/30">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+              )}
               <div className="leading-tight">
-                <h2 className="font-semibold text-white text-base">AdminKit</h2>
-                <p className="text-xs text-blue-200 font-medium">Painel seguro</p>
+                <h2 className="font-semibold text-base" style={{ color: matriz?.cor_texto_cabecalho || "#ffffff" }}>
+                  {matriz?.nome || "Painel"}
+                </h2>
+                <p className="text-xs font-medium" style={{ color: matriz?.cor_texto_cabecalho || "#bfdbfe" }}>
+                  Painel seguro
+                </p>
               </div>
             </div>
           </SidebarHeader>

@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Building2, Plus, Pencil, Power, PowerOff, FileText, Hash, Crown } from "lucide-react";
+import { Building2, Plus, Pencil, Power, PowerOff, FileText, Hash, Crown, Upload, Image as ImageIcon } from "lucide-react";
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
@@ -54,6 +54,9 @@ const filialVazio = {
   tipo: "sub_representante",
   produtos_permitidos: [...TODOS_PRODUTOS],
   rcfv_lmis_permitidos: [30000, 50000, 100000],
+  logo_url: "",
+  cor_primaria: "",
+  cor_texto_cabecalho: "#ffffff",
 };
 
 export default function GestaoFiliais() {
@@ -64,6 +67,7 @@ export default function GestaoFiliais() {
   const [filialEditando, setFilialEditando] = useState(null);
   const [form, setForm] = useState(filialVazio);
   const [salvando, setSalvando] = useState(false);
+  const [uploadLogoLoading, setUploadLogoLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [promoverDialog, setPromoverDialog] = useState({ open: false, filial: null, matrizAtual: null });
 
@@ -113,9 +117,26 @@ export default function GestaoFiliais() {
       rcfv_lmis_permitidos: filial.rcfv_lmis_permitidos && filial.rcfv_lmis_permitidos.length > 0
         ? [...filial.rcfv_lmis_permitidos]
         : [30000, 50000, 100000],
+      logo_url: filial.logo_url || "",
+      cor_primaria: filial.cor_primaria || "",
+      cor_texto_cabecalho: filial.cor_texto_cabecalho || "#ffffff",
     });
     setErro("");
     setModalAberto(true);
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadLogoLoading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm(f => ({ ...f, logo_url: file_url }));
+    } catch (err) {
+      setErro("Erro ao enviar logo: " + (err.message || "tente novamente"));
+    } finally {
+      setUploadLogoLoading(false);
+    }
   };
 
   const toggleAtivo = async (filial) => {
@@ -178,6 +199,9 @@ export default function GestaoFiliais() {
       tipo: form.tipo || "sub_representante",
       produtos_permitidos: produtosPermitidosFinal,
       rcfv_lmis_permitidos: lmisRcfv,
+      logo_url: form.logo_url || "",
+      cor_primaria: form.cor_primaria || "",
+      cor_texto_cabecalho: form.cor_texto_cabecalho || "#ffffff",
     };
 
     // Regra de matriz única: se salvando como matriz, rebaixar a matriz atual
@@ -445,6 +469,82 @@ export default function GestaoFiliais() {
               {form.tipo === "matriz" && (
                 <p className="text-xs text-amber-600">⚠ Ao salvar como matriz, a matriz atual (se houver) será rebaixada a sub-representante.</p>
               )}
+            </div>
+
+            {/* Identidade Visual */}
+            <div className="space-y-2">
+              <Label>Identidade Visual</Label>
+              <div className="border rounded-md p-3 space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Logo da empresa</Label>
+                  <div className="flex items-center gap-3">
+                    {form.logo_url ? (
+                      <img src={form.logo_url} alt="Logo" className="w-16 h-16 object-contain border rounded-md bg-white p-1" />
+                    ) : (
+                      <div className="w-16 h-16 border rounded-md flex items-center justify-center bg-slate-50">
+                        <ImageIcon className="w-6 h-6 text-slate-300" />
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1">
+                      <label className="cursor-pointer">
+                        <span className="inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-md border border-input bg-white hover:bg-slate-50">
+                          <Upload className="w-3.5 h-3.5" />
+                          {uploadLogoLoading ? "Enviando..." : form.logo_url ? "Trocar logo" : "Enviar logo"}
+                        </span>
+                        <input type="file" accept="image/png,image/jpeg,image/svg+xml" className="hidden" onChange={handleLogoUpload} disabled={uploadLogoLoading} />
+                      </label>
+                      {form.logo_url && (
+                        <button
+                          type="button"
+                          onClick={() => setForm(f => ({ ...f, logo_url: "" }))}
+                          className="text-xs text-red-500 hover:text-red-700 text-left"
+                        >
+                          Remover logo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400">PNG, JPG ou SVG.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Cor primária</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={form.cor_primaria || "#1a3a5c"}
+                      onChange={e => setForm(f => ({ ...f, cor_primaria: e.target.value }))}
+                      className="w-10 h-9 rounded-md border border-input cursor-pointer bg-transparent"
+                    />
+                    <Input
+                      value={form.cor_primaria || ""}
+                      onChange={e => setForm(f => ({ ...f, cor_primaria: e.target.value }))}
+                      placeholder="#1a3a5c"
+                      className="font-mono text-sm w-32"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Cor do texto do cabeçalho</Label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, cor_texto_cabecalho: "#ffffff" }))}
+                      className={`flex-1 px-3 py-2 rounded-md text-sm border transition-colors ${form.cor_texto_cabecalho === "#ffffff" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      Claro (#ffffff)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, cor_texto_cabecalho: "#1a1a1a" }))}
+                      className={`flex-1 px-3 py-2 rounded-md text-sm border transition-colors ${form.cor_texto_cabecalho === "#1a1a1a" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      Escuro (#1a1a1a)
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
