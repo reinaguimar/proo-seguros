@@ -1,0 +1,43 @@
+{
+  "name": "LogErro",
+  "type": "object",
+  "properties": {
+    "funcao": {
+      "type": "string",
+      "description": "Nome da server function onde ocorreu o erro"
+    },
+    "mensagem": {
+      "type": "string",
+      "description": "Mensagem do erro"
+    },
+    "stack": {
+      "type": "string",
+      "description": "Stack trace do erro (opcional)"
+    },
+    "usuario_id": {
+      "type": "string",
+      "description": "ID do usuário que disparou a ação"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usuário"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP da requisição"
+    },
+    "contexto": {
+      "type": "string",
+      "description": "Dados adicionais relevantes em JSON stringify"
+    },
+    "resolvido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o erro foi resolvido/tratado"
+    }
+  },
+  "required": [
+    "funcao",
+    "mensagem"
+  ]
+}

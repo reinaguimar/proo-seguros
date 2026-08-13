@@ -2,52 +2,28 @@
   "name": "User",
   "type": "object",
   "properties": {
-    "perfil_sistema": {
+    "role": {
       "type": "string",
       "enum": [
-        "usuario",
-        "gerente",
-        "administrador",
-        "auditor",
-        "super_administrador"
+        "admin",
+        "user"
       ],
-      "default": "usuario",
-      "description": "Perfil de acesso do usu\u00e1rio no sistema"
+      "default": "user"
     },
-    "perfil_fechamento": {
+    "filiais_permitidas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "IDs das filiais que o usuário pode acessar. Array vazio = acesso irrestrito a todas as filiais (admin global)."
+    },
+    "filial_id_padrao": {
       "type": "string",
-      "enum": [
-        "admin_sistema",
-        "auditor",
-        "responsavel_mga",
-        "responsavel_seguradora",
-        "visualizador"
-      ],
-      "default": "visualizador",
-      "description": "Perfil espec\u00edfico para m\u00f3dulo de fechamento (mantido por compatibilidade)"
-    },
-    "ativo": {
-      "type": "boolean",
-      "default": true,
-      "description": "Se false, usu\u00e1rio n\u00e3o pode acessar o sistema"
-    },
-    "data_inativacao": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Quando o usu\u00e1rio foi inativado"
-    },
-    "inativado_por": {
-      "type": "string",
-      "description": "ID do usu\u00e1rio que realizou a inativa\u00e7\u00e3o"
-    },
-    "motivo_inativacao": {
-      "type": "string",
-      "description": "Motivo da inativa\u00e7\u00e3o do usu\u00e1rio"
+      "description": "ID da filial padrão do usuário, usada como contexto inicial no dashboard e filtros. Deve estar contida em filiais_permitidas quando esse array não for vazio."
     }
   },
   "required": [
-    "data_inativacao",
-    "inativado_por",
-    "motivo_inativacao"
+    "filial_id_padrao"
   ]
 }

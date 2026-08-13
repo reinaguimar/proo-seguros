@@ -3,20 +3,17 @@
   "type": "object",
   "properties": {
     "fechamento_id": {
-      "type": "string",
-      "description": "ID do FechamentoMensal"
+      "type": "string"
     },
     "tipo_assinatura": {
       "type": "string",
       "enum": [
         "mga",
         "seguradora"
-      ],
-      "description": "Quem assinou"
+      ]
     },
     "usuario_id": {
-      "type": "string",
-      "description": "ID do usu\u00e1rio que assinou"
+      "type": "string"
     },
     "usuario_nome": {
       "type": "string"
@@ -26,24 +23,19 @@
     },
     "data_assinatura": {
       "type": "string",
-      "format": "date-time",
-      "description": "Data/hora da assinatura"
+      "format": "date-time"
     },
     "hash_documento": {
-      "type": "string",
-      "description": "SHA-256 do documento assinado"
+      "type": "string"
     },
     "hash_assinatura": {
-      "type": "string",
-      "description": "SHA-256 da assinatura digital"
+      "type": "string"
     },
     "certificado_cn": {
-      "type": "string",
-      "description": "Common Name do certificado usado"
+      "type": "string"
     },
     "certificado_issuer": {
-      "type": "string",
-      "description": "Emissor do certificado"
+      "type": "string"
     },
     "metodo_assinatura": {
       "type": "string",
@@ -54,8 +46,7 @@
       "default": "sha256"
     },
     "ip_address": {
-      "type": "string",
-      "description": "IP onde foi assinado"
+      "type": "string"
     },
     "observacao": {
       "type": "string"

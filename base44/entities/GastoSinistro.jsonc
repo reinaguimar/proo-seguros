@@ -3,64 +3,64 @@
   "type": "object",
   "properties": {
     "id_sinistro": {
-      "type": "string",
-      "description": "ID do sinistro relacionado"
+      "type": "string"
     },
     "numero_sinistro": {
-      "type": "string",
-      "description": "N\u00famero do sinistro para refer\u00eancia"
+      "type": "string"
     },
     "tipo_gasto": {
       "type": "string",
       "enum": [
         "oficina",
-        "peca"
-      ],
-      "description": "Tipo do gasto: oficina ou pe\u00e7a"
+        "peca",
+        "acordo_extrajudicial"
+      ]
     },
     "nome_fornecedor": {
-      "type": "string",
-      "description": "Nome do fornecedor/oficina"
+      "type": "string"
     },
     "descricao": {
-      "type": "string",
-      "description": "Descri\u00e7\u00e3o do servi\u00e7o/pe\u00e7a"
+      "type": "string"
     },
     "valor_total": {
-      "type": "number",
-      "description": "Valor total do gasto"
+      "type": "number"
     },
     "data_nota_fiscal": {
       "type": "string",
-      "format": "date",
-      "description": "Data da nota fiscal"
+      "format": "date"
+    },
+    "data_pagamento": {
+      "type": "string",
+      "format": "date"
+    },
+    "numero_nf": {
+      "type": "string"
+    },
+    "numero_documento": {
+      "type": "string"
     },
     "forma_pagamento": {
       "type": "string",
       "enum": [
         "a_vista",
         "parcelado"
-      ],
-      "description": "Forma de pagamento"
+      ]
     },
     "numero_parcelas": {
-      "type": "number",
-      "description": "N\u00famero de parcelas (se parcelado)"
+      "type": "number"
     },
     "datas_pagamento": {
       "type": "array",
       "items": {
         "type": "string",
         "format": "date"
-      },
-      "description": "Datas dos pagamentos (\u00e0 vista ou parcelas)"
+      }
     },
     "valores_parcelas": {
       "type": "array",
       "items": {
         "type": "number"
-      },
-      "description": "Valores de cada parcela"
+      }
     },
     "status_pagamento": {
       "type": "string",
@@ -69,16 +69,53 @@
         "parcialmente_pago",
         "pago"
       ],
-      "default": "pendente",
-      "description": "Status do pagamento"
+      "default": "pendente"
+    },
+    "anexos_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs dos documentos anexados (NF, termos, recibos, etc.)"
+    },
+    "beneficiario_nome": {
+      "type": "string",
+      "description": "Nome do beneficiário do acordo extrajudicial"
+    },
+    "beneficiario_cpf_cnpj": {
+      "type": "string",
+      "description": "CPF ou CNPJ do beneficiário"
+    },
+    "banco_nome": {
+      "type": "string",
+      "description": "Nome do banco"
+    },
+    "banco_agencia": {
+      "type": "string",
+      "description": "Agência bancária"
+    },
+    "banco_conta": {
+      "type": "string",
+      "description": "Número da conta"
+    },
+    "banco_tipo_conta": {
+      "type": "string",
+      "enum": [
+        "corrente",
+        "poupanca",
+        "pagamento"
+      ],
+      "description": "Tipo da conta bancária"
+    },
+    "banco_chave_pix": {
+      "type": "string",
+      "description": "Chave PIX do beneficiário"
     }
   },
   "required": [
     "id_sinistro",
     "tipo_gasto",
-    "nome_fornecedor",
     "valor_total",
-    "data_nota_fiscal",
     "forma_pagamento"
   ]
 }

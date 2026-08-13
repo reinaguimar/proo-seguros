@@ -3,111 +3,100 @@
   "type": "object",
   "properties": {
     "numero_apolice": {
-      "type": "string",
-      "description": "N\u00famero da ap\u00f3lice gerado automaticamente"
+      "type": "string"
+    },
+    "filial_id": {
+      "type": "string"
+    },
+    "filial_codigo_susep": {
+      "type": "string"
+    },
+    "filial_nome": {
+      "type": "string"
+    },
+    "filial_codigo": {
+      "type": "string"
     },
     "natureza_movimento": {
       "type": "string",
-      "default": "Emiss\u00e3o",
-      "description": "Natureza do movimento"
+      "default": "Emissão"
     },
     "tipo_movimento": {
       "type": "string",
-      "default": "01 - Emiss\u00e3o",
-      "description": "Tipo do movimento"
+      "default": "01 - Emissão"
     },
     "valor_corretagem": {
       "type": "number",
-      "default": 0,
-      "description": "Valor da corretagem (sempre 0.00)"
+      "default": 0
     },
     "iof": {
-      "type": "number",
-      "description": "Valor do IOF calculado automaticamente"
+      "type": "number"
     },
     "data_inicio_apolice": {
       "type": "string",
-      "format": "date",
-      "description": "Data de in\u00edcio da ap\u00f3lice"
+      "format": "date"
     },
     "data_fim_apolice": {
       "type": "string",
-      "format": "date",
-      "description": "Data de fim da ap\u00f3lice"
+      "format": "date"
     },
     "data_inicio_cobertura": {
       "type": "string",
-      "format": "date",
-      "description": "Data de in\u00edcio da cobertura"
+      "format": "date"
     },
     "data_fim_cobertura": {
       "type": "string",
-      "format": "date",
-      "description": "Data de fim da cobertura"
+      "format": "date"
     },
     "id_segurado": {
-      "type": "string",
-      "description": "CPF/CNPJ do segurado"
+      "type": "string"
     },
     "id_beneficiario": {
-      "type": "string",
-      "description": "CPF/CNPJ do benefici\u00e1rio"
+      "type": "string"
     },
     "seguro_intermitente": {
       "type": "boolean",
-      "default": false,
-      "description": "Seguro intermitente"
+      "default": false
     },
     "data_movimento": {
       "type": "string",
-      "format": "date",
-      "description": "Data do movimento"
+      "format": "date"
     },
     "lmi_geral": {
-      "type": "number",
-      "description": "Limite m\u00e1ximo de indeniza\u00e7\u00e3o geral"
+      "type": "number"
     },
     "premio_bruto_total": {
-      "type": "number",
-      "description": "Pr\u00eamio bruto total"
+      "type": "number"
     },
     "produtos": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Produtos/coberturas selecionados"
+      }
     },
     "rcfv_lmi": {
-      "type": "number",
-      "description": "LMI espec\u00edfico do RCF-V"
+      "type": "number"
     },
     "id_objeto": {
-      "type": "string",
-      "description": "ID do objeto segurado (placa/chassi)"
+      "type": "string"
     },
     "renovada": {
       "type": "boolean",
-      "default": false,
-      "description": "Indica se a ap\u00f3lice foi renovada"
+      "default": false
     },
     "renovacao_de": {
-      "type": "string",
-      "description": "ID da ap\u00f3lice anterior (se for uma renova\u00e7\u00e3o)"
+      "type": "string"
     },
     "id_apolice_renovacao": {
-      "type": "string",
-      "description": "ID da nova ap\u00f3lice criada na renova\u00e7\u00e3o"
+      "type": "string"
     },
     "data_renovacao": {
       "type": "string",
-      "format": "date",
-      "description": "Data em que a renova\u00e7\u00e3o foi realizada"
+      "format": "date"
     },
     "numero_renovacao": {
       "type": "number",
-      "default": 0,
-      "description": "N\u00famero sequencial de renova\u00e7\u00f5es (0=original)"
+      "default": 0
     },
     "cobertura_1_id_cobertura": {
       "type": "string"
@@ -244,31 +233,5 @@
     "lmi_geral",
     "premio_bruto_total",
     "id_objeto"
-  ],
-  "rls": {
-    "read": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
-    "write": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    }
-  }
+  ]
 }

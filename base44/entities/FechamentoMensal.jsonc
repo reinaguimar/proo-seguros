@@ -3,12 +3,10 @@
   "type": "object",
   "properties": {
     "competencia_mes": {
-      "type": "number",
-      "description": "M\u00eas (1-12)"
+      "type": "number"
     },
     "competencia_ano": {
-      "type": "number",
-      "description": "Ano (ex: 2025)"
+      "type": "number"
     },
     "status": {
       "type": "string",
@@ -23,88 +21,95 @@
     },
     "premio_emitido_bruto": {
       "type": "number",
-      "default": 0,
-      "description": "Item 2.1 do Border\u00f4"
+      "default": 0
+    },
+    "iof_total_mes": {
+      "type": "number",
+      "default": 0
     },
     "inadimplencia": {
       "type": "number",
-      "default": 0,
-      "description": "Item 2.2 - Pr\u00eamios vencidos >60 dias"
+      "default": 0
     },
     "premio_arrecadado_liquido": {
       "type": "number",
-      "default": 0,
-      "description": "Item 2.3 - 2.1 menos 2.2"
+      "default": 0
     },
     "sinistros_avisados": {
       "type": "number",
-      "default": 0,
-      "description": "Item 3.1 - Informativo"
+      "default": 0
     },
     "sinistros_pagos": {
       "type": "number",
-      "default": 0,
-      "description": "Item 3.2 - Gastos efetivos"
+      "default": 0
     },
     "remuneracao_minima_seguradora": {
       "type": "number",
-      "default": 0,
-      "description": "Item 4.1 - 10.38% sobre pr\u00eamio"
+      "default": 0
     },
     "remuneracao_sinistralidade_seguradora": {
       "type": "number",
-      "default": 0,
-      "description": "Item 4.2 - 40% sobre sinistros pagos"
+      "default": 0
     },
     "remuneracao_aplicada_seguradora": {
       "type": "number",
-      "default": 0,
-      "description": "Item 4.3 - Maior entre 4.1 e 4.2"
+      "default": 0
     },
     "comissao_fixa_mga": {
       "type": "number",
-      "default": 0,
-      "description": "Item 5.1 - Parametriz\u00e1vel"
+      "default": 0
     },
     "lucro_operacional": {
       "type": "number",
-      "default": 0,
-      "description": "Item 5.2"
+      "default": 0
     },
     "bonus_variavel_mga": {
       "type": "number",
-      "default": 0,
-      "description": "Item 5.3 - Parametriz\u00e1vel"
+      "default": 0
     },
     "remuneracao_total_mga": {
       "type": "number",
-      "default": 0,
-      "description": "Item 5.4"
+      "default": 0
     },
     "saldo_tecnico_liquido": {
       "type": "number",
-      "default": 0,
-      "description": "Item 6.1"
+      "default": 0
     },
     "repasse_seguradora": {
       "type": "number",
-      "default": 0,
-      "description": "Item 6.2"
+      "default": 0
     },
     "retencao_mga": {
       "type": "number",
-      "default": 0,
-      "description": "Item 6.3"
+      "default": 0
     },
     "percentual_comissao_mga": {
       "type": "number",
-      "default": 10,
-      "description": "% para comiss\u00e3o fixa MGA (parametriz\u00e1vel)"
+      "default": 10
     },
     "percentual_bonus_mga": {
       "type": "number",
-      "default": 3.8,
-      "description": "% para b\u00f4nus vari\u00e1vel MGA (parametriz\u00e1vel)"
+      "default": 3.8
+    },
+    "cr_capital_aportado": {
+      "type": "number",
+      "default": 50000
+    },
+    "cr_necessidade_capital": {
+      "type": "number",
+      "default": 0
+    },
+    "cr_saldo_positivo": {
+      "type": "number",
+      "default": 0
+    },
+    "cr_necessidade_aporte": {
+      "type": "number",
+      "default": 0
+    },
+    "cr_atualizado": {
+      "type": "number",
+      "default": 0
     },
     "auditor_id": {
       "type": "string"
@@ -155,12 +160,33 @@
       "type": "string"
     },
     "detalhes_calculo": {
-      "type": "object",
-      "description": "Breakdown dos c\u00e1lculos"
+      "type": "object"
     }
   },
   "required": [
     "competencia_mes",
     "competencia_ano"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

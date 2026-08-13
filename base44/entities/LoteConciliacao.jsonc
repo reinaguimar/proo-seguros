@@ -3,8 +3,7 @@
   "type": "object",
   "properties": {
     "competencia": {
-      "type": "string",
-      "description": "Formato YYYY-MM"
+      "type": "string"
     },
     "data_processamento": {
       "type": "string",
@@ -20,8 +19,7 @@
       "default": "processando"
     },
     "total_apolices_base": {
-      "type": "number",
-      "description": "Total de ap\u00f3lices na base Apolice no momento"
+      "type": "number"
     },
     "total_ativo": {
       "type": "number",
@@ -44,8 +42,7 @@
       "default": 0
     },
     "registros_validos_ativos": {
-      "type": "number",
-      "description": "Linhas v\u00e1lidas da planilha Ativos"
+      "type": "number"
     },
     "registros_validos_inadimplentes": {
       "type": "number"
@@ -54,8 +51,7 @@
       "type": "number"
     },
     "grupos_marcados_ativo": {
-      "type": "number",
-      "description": "Quantos grupos \u00fanicos (CPF+PLACA) receberam status ativo"
+      "type": "number"
     },
     "grupos_marcados_inadimplente": {
       "type": "number"
@@ -67,12 +63,10 @@
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Alertas de valida\u00e7\u00e3o"
+      }
     },
     "log_etapas": {
-      "type": "object",
-      "description": "Log JSON com timestamp de cada etapa"
+      "type": "object"
     },
     "erro_mensagem": {
       "type": "string"

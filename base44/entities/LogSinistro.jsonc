@@ -1,0 +1,61 @@
+{
+  "name": "LogSinistro",
+  "type": "object",
+  "properties": {
+    "sinistro_id": {
+      "type": "string",
+      "description": "ID do sinistro afetado"
+    },
+    "numero_sinistro": {
+      "type": "string",
+      "description": "Número do sinistro para busca"
+    },
+    "acao": {
+      "type": "string",
+      "enum": [
+        "criado",
+        "status_alterado",
+        "dados_editados",
+        "gasto_adicionado"
+      ],
+      "description": "Tipo de ação registrada"
+    },
+    "campo_alterado": {
+      "type": "string",
+      "description": "Campo que mudou (ex: status, valor_inicial, franquia)"
+    },
+    "valor_anterior": {
+      "type": "string",
+      "description": "Valor antes da alteração"
+    },
+    "valor_novo": {
+      "type": "string",
+      "description": "Valor após a alteração"
+    },
+    "usuario_id": {
+      "type": "string",
+      "description": "ID do usuário que executou a ação"
+    },
+    "usuario_nome": {
+      "type": "string",
+      "description": "Nome do usuário"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "E-mail do usuário"
+    },
+    "data_acao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora da ação"
+    },
+    "observacao": {
+      "type": "string",
+      "description": "Detalhe adicional da ação"
+    }
+  },
+  "required": [
+    "sinistro_id",
+    "acao"
+  ]
+}

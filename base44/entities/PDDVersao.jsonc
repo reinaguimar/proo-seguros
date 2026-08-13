@@ -3,16 +3,13 @@
   "type": "object",
   "properties": {
     "competencia": {
-      "type": "string",
-      "description": "YYYY-MM"
+      "type": "string"
     },
     "pdd_competencia_id": {
-      "type": "string",
-      "description": "ID do PDDCompetencia"
+      "type": "string"
     },
     "numero_versao": {
-      "type": "number",
-      "description": "N\u00famero sequencial da vers\u00e3o (1, 2, 3...)"
+      "type": "number"
     },
     "total_inadimplentes": {
       "type": "number",
@@ -23,42 +20,34 @@
       "default": 0
     },
     "criterio": {
-      "type": "string",
-      "description": "Crit\u00e9rio de c\u00e1lculo usado"
+      "type": "string"
     },
     "breakdown_por_faixa": {
-      "type": "object",
-      "description": "Detalhamento por faixa de aging"
+      "type": "object"
     },
     "usuario_id": {
-      "type": "string",
-      "description": "Quem calculou esta vers\u00e3o"
+      "type": "string"
     },
     "usuario_nome": {
       "type": "string"
     },
     "data_calculo": {
       "type": "string",
-      "format": "date-time",
-      "description": "Quando foi calculado"
+      "format": "date-time"
     },
     "motivo_recalculo": {
-      "type": "string",
-      "description": "Por que foi recalculado (se houver)"
+      "type": "string"
     },
     "parametros_id": {
-      "type": "string",
-      "description": "ID dos par\u00e2metros PDD usados"
+      "type": "string"
     },
     "ativa": {
       "type": "boolean",
-      "default": false,
-      "description": "Se \u00e9 a vers\u00e3o ativa do m\u00eas"
+      "default": false
     },
     "data_ativacao": {
       "type": "string",
-      "format": "date-time",
-      "description": "Quando foi ativada"
+      "format": "date-time"
     }
   },
   "required": [

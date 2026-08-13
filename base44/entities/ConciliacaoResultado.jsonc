@@ -3,16 +3,13 @@
   "type": "object",
   "properties": {
     "lote_id": {
-      "type": "string",
-      "description": "ID do LoteConciliacao"
+      "type": "string"
     },
     "competencia": {
-      "type": "string",
-      "description": "YYYY-MM"
+      "type": "string"
     },
     "apolice_id": {
-      "type": "string",
-      "description": "ID original da Apolice"
+      "type": "string"
     },
     "numero_apolice": {
       "type": "string"
@@ -30,8 +27,7 @@
       "type": "string"
     },
     "chave_grupo": {
-      "type": "string",
-      "description": "CPF_normalizado|Placa_normalizada"
+      "type": "string"
     },
     "status_financeiro": {
       "type": "string",

@@ -24,8 +24,7 @@
       "type": "string"
     },
     "breakdown_por_faixa": {
-      "type": "object",
-      "description": "Detalhamento por faixa de dias"
+      "type": "object"
     },
     "ticket_medio_usado": {
       "type": "number"

@@ -3,8 +3,7 @@
   "type": "object",
   "properties": {
     "fechamento_id": {
-      "type": "string",
-      "description": "ID do FechamentoMensal"
+      "type": "string"
     },
     "acao": {
       "type": "string",
@@ -20,45 +19,36 @@
         "reaberto",
         "cancelado",
         "assinado_mga",
-        "assinado_seguradora"
-      ],
-      "description": "Tipo de a\u00e7\u00e3o realizada"
+        "assinado_seguradora",
+        "alteracao_perfil"
+      ]
     },
     "usuario_id": {
-      "type": "string",
-      "description": "ID do usu\u00e1rio que realizou a a\u00e7\u00e3o"
+      "type": "string"
     },
     "usuario_nome": {
-      "type": "string",
-      "description": "Nome do usu\u00e1rio"
+      "type": "string"
     },
     "usuario_email": {
-      "type": "string",
-      "description": "Email do usu\u00e1rio"
+      "type": "string"
     },
     "observacao": {
-      "type": "string",
-      "description": "Observa\u00e7\u00e3o/justificativa da a\u00e7\u00e3o"
+      "type": "string"
     },
     "ip_address": {
-      "type": "string",
-      "description": "IP de origem da a\u00e7\u00e3o"
+      "type": "string"
     },
     "dados_snapshot": {
-      "type": "object",
-      "description": "Snapshot dos valores no momento da a\u00e7\u00e3o"
+      "type": "object"
     },
     "assinatura_digital": {
-      "type": "string",
-      "description": "Hash SHA-256 da assinatura (se aplic\u00e1vel)"
+      "type": "string"
     },
     "certificado_info": {
-      "type": "object",
-      "description": "Informa\u00e7\u00f5es do certificado digital usado (se aplic\u00e1vel)"
+      "type": "object"
     },
     "versao_pdd": {
-      "type": "number",
-      "description": "Vers\u00e3o do PDD neste fechamento"
+      "type": "number"
     }
   },
   "required": [

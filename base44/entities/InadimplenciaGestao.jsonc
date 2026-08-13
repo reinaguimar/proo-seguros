@@ -3,12 +3,10 @@
   "type": "object",
   "properties": {
     "apolice_id": {
-      "type": "string",
-      "description": "ID da ap\u00f3lice (CHAVE \u00daNICA)"
+      "type": "string"
     },
     "chave_grupo": {
-      "type": "string",
-      "description": "CPF|Placa (indexado mas n\u00e3o \u00fanico)"
+      "type": "string"
     },
     "numero_apolice": {
       "type": "string"
@@ -26,8 +24,7 @@
         "inadimplente",
         "cancelado",
         "pago"
-      ],
-      "description": "Status financeiro da \u00faltima concilia\u00e7\u00e3o"
+      ]
     },
     "status_atual": {
       "type": "string",
@@ -40,13 +37,11 @@
         "encerrado",
         "cancelado_por_inadimplencia"
       ],
-      "default": "em_aberto",
-      "description": "Status de cobran\u00e7a/gest\u00e3o"
+      "default": "em_aberto"
     },
     "bloqueado_recalculo": {
       "type": "boolean",
-      "default": false,
-      "description": "Se true, concilia\u00e7\u00f5es n\u00e3o alteram mais esse registro"
+      "default": false
     },
     "data_bloqueio": {
       "type": "string",
@@ -57,8 +52,7 @@
       "format": "date"
     },
     "dias_inadimplencia": {
-      "type": "number",
-      "description": "Calculado: hoje - data_inicio_inadimplencia"
+      "type": "number"
     },
     "responsavel": {
       "type": "string"
@@ -101,8 +95,7 @@
       "type": "array",
       "items": {
         "type": "object"
-      },
-      "description": "\u00daltimas 24 concilia\u00e7\u00f5es (limitado)"
+      }
     }
   },
   "required": [

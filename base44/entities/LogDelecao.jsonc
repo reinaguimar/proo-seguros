@@ -7,45 +7,35 @@
       "enum": [
         "Apolice",
         "Sinistro"
-      ],
-      "description": "Tipo de registro deletado"
+      ]
     },
     "id_registro": {
-      "type": "string",
-      "description": "ID do registro deletado"
+      "type": "string"
     },
     "id_registro_alternativo": {
-      "type": "string",
-      "description": "N\u00famero da ap\u00f3lice ou sinistro para refer\u00eancia"
+      "type": "string"
     },
     "usuario_id": {
-      "type": "string",
-      "description": "ID do usu\u00e1rio que deletou"
+      "type": "string"
     },
     "usuario_email": {
-      "type": "string",
-      "description": "Email do usu\u00e1rio que deletou"
+      "type": "string"
     },
     "usuario_nome": {
-      "type": "string",
-      "description": "Nome do usu\u00e1rio que deletou"
+      "type": "string"
     },
     "motivo_delecao": {
-      "type": "string",
-      "description": "Motivo/justificativa da dele\u00e7\u00e3o"
+      "type": "string"
     },
     "data_delecao": {
       "type": "string",
-      "format": "date-time",
-      "description": "Data e hora da dele\u00e7\u00e3o"
+      "format": "date-time"
     },
     "ip_address": {
-      "type": "string",
-      "description": "IP da m\u00e1quina onde foi feita a dele\u00e7\u00e3o"
+      "type": "string"
     },
     "dados_backup": {
-      "type": "object",
-      "description": "Snapshot dos dados antes da dele\u00e7\u00e3o"
+      "type": "object"
     }
   },
   "required": [
