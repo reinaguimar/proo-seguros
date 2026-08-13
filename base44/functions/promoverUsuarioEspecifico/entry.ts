@@ -6,8 +6,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    const EMAIL_ALVO = 'reinaldo.aguimar@oonseguradora.com';
+
+    const body = await req.json().catch(() => ({}));
+    const EMAIL_ALVO = body.email || 'reinaldo.aguimar@oonseguradora.com';
     
     // Buscar todos os usuários
     const usuarios = await base44.asServiceRole.entities.User.list();
