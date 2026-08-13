@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -20,12 +21,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Building2, Plus, Pencil, Power, PowerOff, FileText, Hash } from "lucide-react";
+import { Building2, Plus, Pencil, Power, PowerOff, FileText, Hash, Crown } from "lucide-react";
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",
   "PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"
 ];
+
+const PRODUTOS_FILIAL = [
+  { value: "FR", label: "Furto e Roubo" },
+  { value: "RCFV", label: "RCF-V (Resp. Civil Facultativa)" },
+  { value: "COL_PARCIAL", label: "Colisão Parcial" },
+  { value: "COL_TOTAL", label: "Colisão Total" },
+  { value: "INCENDIO", label: "Incêndio e Fenômenos da Natureza" },
+];
+
+const TODOS_PRODUTOS = ["FR", "RCFV", "COL_PARCIAL", "COL_TOTAL", "INCENDIO"];
 
 const filialVazio = {
   nome: "",
@@ -35,6 +46,8 @@ const filialVazio = {
   cidade: "",
   estado: "SP",
   ativo: true,
+  tipo: "sub_representante",
+  produtos_permitidos: [...TODOS_PRODUTOS],
 };
 
 export default function GestaoFiliais() {
@@ -46,6 +59,7 @@ export default function GestaoFiliais() {
   const [form, setForm] = useState(filialVazio);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+  const [promoverDialog, setPromoverDialog] = useState({ open: false, filial: null, matrizAtual: null });
 
   const carregarFiliais = async () => {
     setLoading(true);
@@ -86,6 +100,10 @@ export default function GestaoFiliais() {
       cidade: filial.cidade || "",
       estado: filial.estado || "SP",
       ativo: filial.ativo,
+      tipo: filial.tipo || "sub_representante",
+      produtos_permitidos: filial.produtos_permitidos && filial.produtos_permitidos.length > 0
+        ? [...filial.produtos_permitidos]
+        : [...TODOS_PRODUTOS],
     });
     setErro("");
     setModalAberto(true);
@@ -94,6 +112,29 @@ export default function GestaoFiliais() {
   const toggleAtivo = async (filial) => {
     await base44.entities.Filial.update(filial.id, { ativo: !filial.ativo });
     carregarFiliais();
+  };
+
+  const abrirPromoverDialog = (filial) => {
+    const matrizAtual = filiais.find(f => f.tipo === "matriz" && f.id !== filial.id);
+    setPromoverDialog({ open: true, filial, matrizAtual });
+  };
+
+  const confirmarPromocaoMatriz = async () => {
+    const { filial, matrizAtual } = promoverDialog;
+    if (!filial) return;
+    setSalvando(true);
+    try {
+      if (matrizAtual) {
+        await base44.entities.Filial.update(matrizAtual.id, { tipo: "sub_representante" });
+      }
+      await base44.entities.Filial.update(filial.id, { tipo: "matriz" });
+    } catch (e) {
+      setErro("Erro ao promover filial: " + e.message);
+    } finally {
+      setSalvando(false);
+      setPromoverDialog({ open: false, filial: null, matrizAtual: null });
+      carregarFiliais();
+    }
   };
 
   const salvar = async () => {
@@ -118,7 +159,17 @@ export default function GestaoFiliais() {
       cidade: form.cidade.trim(),
       estado: form.estado,
       ativo: form.ativo,
+      tipo: form.tipo || "sub_representante",
+      produtos_permitidos: form.produtos_permitidos || [],
     };
+
+    // Regra de matriz única: se salvando como matriz, rebaixar a matriz atual
+    if (dados.tipo === "matriz") {
+      const matrizAtual = filiais.find(f => f.tipo === "matriz" && f.id !== filialEditando?.id);
+      if (matrizAtual) {
+        await base44.entities.Filial.update(matrizAtual.id, { tipo: "sub_representante" });
+      }
+    }
 
     if (filialEditando) {
       await base44.entities.Filial.update(filialEditando.id, dados);
@@ -210,6 +261,7 @@ export default function GestaoFiliais() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Cód. SUSEP</TableHead>
                   <TableHead>Cidade/UF</TableHead>
+                  <TableHead className="text-center">Tipo</TableHead>
                   <TableHead className="text-center">Apólices</TableHead>
                   <TableHead className="text-center">Último Seq.</TableHead>
                   <TableHead className="text-center">Status</TableHead>
@@ -227,6 +279,13 @@ export default function GestaoFiliais() {
                     </TableCell>
                     <TableCell className="text-slate-600">
                       {filial.cidade ? `${filial.cidade} / ${filial.estado}` : filial.estado || "—"}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {filial.tipo === "matriz" ? (
+                        <Badge className="bg-purple-100 text-purple-700 border-purple-200">Matriz</Badge>
+                      ) : (
+                        <Badge className="bg-slate-100 text-slate-500 border-slate-200">Sub-representante</Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                      <span className="font-semibold text-blue-600">{contagemApolices[filial.id] || 0}</span>
@@ -247,6 +306,11 @@ export default function GestaoFiliais() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {filial.tipo !== "matriz" && (
+                          <Button variant="ghost" size="icon" onClick={() => abrirPromoverDialog(filial)} title="Promover a Matriz">
+                            <Crown className="w-4 h-4 text-purple-500" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="icon" onClick={() => abrirEditar(filial)} title="Editar">
                           <Pencil className="w-4 h-4 text-slate-500" />
                         </Button>
@@ -271,9 +335,9 @@ export default function GestaoFiliais() {
         </CardContent>
       </Card>
 
-      {/* Modal */}
+      {/* Modal Criar/Editar */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{filialEditando ? "Editar Filial" : "Nova Filial"}</DialogTitle>
           </DialogHeader>
@@ -350,6 +414,43 @@ export default function GestaoFiliais() {
                 </select>
               </div>
             </div>
+
+            <div className="space-y-1.5">
+              <Label>Tipo</Label>
+              <select
+                value={form.tipo || "sub_representante"}
+                onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
+                className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="sub_representante">Sub-representante</option>
+                <option value="matriz">Matriz</option>
+              </select>
+              {form.tipo === "matriz" && (
+                <p className="text-xs text-amber-600">⚠ Ao salvar como matriz, a matriz atual (se houver) será rebaixada a sub-representante.</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Produtos Comercializáveis</Label>
+              <div className="border rounded-md p-3 space-y-2">
+                {PRODUTOS_FILIAL.map(produto => (
+                  <label key={produto.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(form.produtos_permitidos || []).includes(produto.value)}
+                      onChange={() => {
+                        const atual = form.produtos_permitidos || [];
+                        const novo = atual.includes(produto.value)
+                          ? atual.filter(v => v !== produto.value)
+                          : [...atual, produto.value];
+                        setForm(f => ({ ...f, produtos_permitidos: novo }));
+                      }}
+                    />
+                    <span className="text-sm">{produto.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalAberto(false)}>Cancelar</Button>
@@ -357,6 +458,34 @@ export default function GestaoFiliais() {
               {salvando ? "Salvando..." : filialEditando ? "Salvar Alterações" : "Criar Filial"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Promover a Matriz */}
+      <Dialog open={promoverDialog.open} onOpenChange={(open) => !open && setPromoverDialog({ open: false, filial: null, matrizAtual: null })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-purple-500" />
+              Promover a Matriz
+            </DialogTitle>
+            <DialogDescription>
+              Promover <strong>{promoverDialog.filial?.nome}</strong> a matriz?
+              {promoverDialog.matrizAtual ? (
+                <> A matriz atual (<strong>{promoverDialog.matrizAtual.nome}</strong>) será rebaixada a sub-representante.</>
+              ) : (
+                <> Não há matriz atual, então esta se tornará a nova matriz.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setPromoverDialog({ open: false, filial: null, matrizAtual: null })}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmarPromocaoMatriz} disabled={salvando} className="bg-purple-600 hover:bg-purple-700">
+              {salvando ? "Processando..." : "Confirmar Promoção"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

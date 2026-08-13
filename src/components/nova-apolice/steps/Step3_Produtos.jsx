@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { base44 } from "@/api/base44Client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
@@ -17,7 +18,41 @@ const RCFV_OPCOES = [
   { lmi: 100000, label: "R$ 100.000,00", premio: 35.90 },
 ];
 
-export default function Step3Produtos({ formData, onInputChange }) {
+export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXAS }) {
+  const [produtosPermitidos, setProdutosPermitidos] = useState(null);
+
+  useEffect(() => {
+    const carregarFilial = async () => {
+      if (!formData.filial_id) {
+        setProdutosPermitidos(null);
+        return;
+      }
+      try {
+        const filiais = await base44.entities.Filial.filter({ id: formData.filial_id });
+        setProdutosPermitidos(filiais[0]?.produtos_permitidos || null);
+      } catch {
+        setProdutosPermitidos(null);
+      }
+    };
+    carregarFilial();
+  }, [formData.filial_id]);
+
+  // Se produtosPermitidos estiver vazio ou ausente, permite todos (compatibilidade)
+  const produtosBloqueados = (produtosPermitidos && produtosPermitidos.length > 0)
+    ? PRODUTOS.filter(p => !produtosPermitidos.includes(p.value)).map(p => p.value)
+    : [];
+
+  // Remove produtos bloqueados da seleção atual
+  const bloqueadosKey = produtosBloqueados.join(',');
+  useEffect(() => {
+    if (bloqueadosKey && formData.produtos && formData.produtos.length > 0) {
+      const limpos = formData.produtos.filter(p => !produtosBloqueados.includes(p));
+      if (limpos.length !== formData.produtos.length) {
+        onInputChange('produtos', limpos);
+      }
+    }
+  }, [bloqueadosKey]);
+
   const rcfvSelecionado = (formData.produtos || []).includes("RCFV");
   const rcfvLmi = formData.rcfv_lmi || 100000;
 
@@ -33,24 +68,27 @@ export default function Step3Produtos({ formData, onInputChange }) {
 
   return (
     <div className="space-y-4">
-      {PRODUTOS.map(produto => (
+      {PRODUTOS.map(produto => {
+        const isBloqueado = produtosBloqueados.includes(produto.value);
+        return (
         <div key={produto.value}>
           <div className={`flex items-start space-x-3 p-4 rounded-lg border transition-colors ${
             (formData.produtos || []).includes(produto.value)
               ? 'bg-blue-50 border-blue-300'
               : 'border-slate-200 hover:bg-slate-50'
-          } ${produto.isBasic ? 'opacity-70' : ''}`}>
+          } ${produto.isBasic ? 'opacity-70' : ''} ${isBloqueado ? 'opacity-40' : ''}`}>
             <Checkbox
               id={produto.value}
               checked={(formData.produtos || []).includes(produto.value)}
               onCheckedChange={(checked) => handleProdutoToggle(produto.value, checked)}
-              disabled={produto.isBasic}
+              disabled={produto.isBasic || isBloqueado}
               className="mt-1"
             />
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <Label htmlFor={produto.value} className={`text-base font-medium text-slate-900 ${!produto.isBasic && "cursor-pointer"}`}>
+                <Label htmlFor={produto.value} className={`text-base font-medium text-slate-900 ${!produto.isBasic && !isBloqueado && "cursor-pointer"}`}>
                   {produto.label}
+                  {isBloqueado && <span className="ml-2 text-xs text-red-500 font-normal">Não disponível para esta filial</span>}
                 </Label>
                 {produto.value === 'RCFV' && (
                   <div className="text-right">
@@ -86,7 +124,8 @@ export default function Step3Produtos({ formData, onInputChange }) {
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

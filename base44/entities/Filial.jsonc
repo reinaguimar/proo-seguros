@@ -50,6 +50,13 @@
       "default": "sub_representante",
       "description": "Tipo: matriz ou sub-representante"
     },
+    "produtos_permitidos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Produtos que esta filial pode comercializar na ap\u00f3lice. Valores: FR, RCFV, COL_PARCIAL, COL_TOTAL, INCENDIO"
+    },
     "logo_url": {
       "type": "string",
       "description": "URL da logo da filial para uso no certificado"

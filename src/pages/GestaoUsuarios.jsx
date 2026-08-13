@@ -47,6 +47,7 @@ import PerfilBadge from "../components/fechamento/PerfilBadge";
 import { usePermissoes } from "../components/auth/usePermissoes";
 import EditarPerfilModal from "../components/gestao/EditarPerfilModal";
 import PerfilCard from "../components/gestao/PerfilCard";
+import ErrorBoundary from "../components/ErrorBoundary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const PERFIS_INFO = {
@@ -270,6 +271,7 @@ export default function GestaoUsuarios() {
   };
 
   const contarUsuariosPorPerfil = (perfilNome) => {
+    if (!perfilNome || typeof perfilNome !== 'string') return 0;
     const key = perfilNome.toLowerCase().replace(' ', '_');
     return usuarios.filter(u => u.perfil_sistema === key && u.ativo !== false).length;
   };
@@ -286,6 +288,7 @@ export default function GestaoUsuarios() {
   }
 
   return (
+    <ErrorBoundary>
     <div className="p-6 lg:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
@@ -584,7 +587,7 @@ export default function GestaoUsuarios() {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {perfis.map((perfil) => (
+              {perfis.filter(p => p && p.id && p.nome).map((perfil) => (
                 <PerfilCard
                   key={perfil.id}
                   perfil={perfil}
@@ -736,5 +739,6 @@ export default function GestaoUsuarios() {
         />
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

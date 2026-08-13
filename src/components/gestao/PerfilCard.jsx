@@ -33,14 +33,15 @@ const PERFIL_CONFIG = {
 };
 
 export default function PerfilCard({ perfil, usuariosCount, onEdit }) {
-  const config = PERFIL_CONFIG[perfil.nome.toLowerCase().replace(' ', '_')] || PERFIL_CONFIG.usuario;
+  if (!perfil || !perfil.nome) return null;
+  const config = PERFIL_CONFIG[(perfil.nome || '').toLowerCase().replace(' ', '_')] || PERFIL_CONFIG.usuario;
   const Icon = config.icon;
 
   const contarPermissoes = () => {
     if (!perfil.permissoes) return 0;
     let total = 0;
     Object.values(perfil.permissoes).forEach(modulo => {
-      if (typeof modulo === 'object') {
+      if (modulo && typeof modulo === 'object') {
         total += Object.values(modulo).filter(v => v === true).length;
       }
     });
