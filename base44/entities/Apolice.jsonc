@@ -19,11 +19,11 @@
     },
     "natureza_movimento": {
       "type": "string",
-      "default": "Emissão"
+      "default": "Emiss\u00e3o"
     },
     "tipo_movimento": {
       "type": "string",
-      "default": "01 - Emissão"
+      "default": "01 - Emiss\u00e3o"
     },
     "valor_corretagem": {
       "type": "number",

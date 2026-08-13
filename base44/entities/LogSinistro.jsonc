@@ -8,7 +8,7 @@
     },
     "numero_sinistro": {
       "type": "string",
-      "description": "Número do sinistro para busca"
+      "description": "N\u00famero do sinistro para busca"
     },
     "acao": {
       "type": "string",
@@ -18,7 +18,7 @@
         "dados_editados",
         "gasto_adicionado"
       ],
-      "description": "Tipo de ação registrada"
+      "description": "Tipo de a\u00e7\u00e3o registrada"
     },
     "campo_alterado": {
       "type": "string",
@@ -26,32 +26,32 @@
     },
     "valor_anterior": {
       "type": "string",
-      "description": "Valor antes da alteração"
+      "description": "Valor antes da altera\u00e7\u00e3o"
     },
     "valor_novo": {
       "type": "string",
-      "description": "Valor após a alteração"
+      "description": "Valor ap\u00f3s a altera\u00e7\u00e3o"
     },
     "usuario_id": {
       "type": "string",
-      "description": "ID do usuário que executou a ação"
+      "description": "ID do usu\u00e1rio que executou a a\u00e7\u00e3o"
     },
     "usuario_nome": {
       "type": "string",
-      "description": "Nome do usuário"
+      "description": "Nome do usu\u00e1rio"
     },
     "usuario_email": {
       "type": "string",
-      "description": "E-mail do usuário"
+      "description": "E-mail do usu\u00e1rio"
     },
     "data_acao": {
       "type": "string",
       "format": "date-time",
-      "description": "Data/hora da ação"
+      "description": "Data/hora da a\u00e7\u00e3o"
     },
     "observacao": {
       "type": "string",
-      "description": "Detalhe adicional da ação"
+      "description": "Detalhe adicional da a\u00e7\u00e3o"
     }
   },
   "required": [

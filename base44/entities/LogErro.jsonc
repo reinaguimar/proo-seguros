@@ -16,15 +16,15 @@
     },
     "usuario_id": {
       "type": "string",
-      "description": "ID do usuário que disparou a ação"
+      "description": "ID do usu\u00e1rio que disparou a a\u00e7\u00e3o"
     },
     "usuario_email": {
       "type": "string",
-      "description": "Email do usuário"
+      "description": "Email do usu\u00e1rio"
     },
     "ip_address": {
       "type": "string",
-      "description": "IP da requisição"
+      "description": "IP da requisi\u00e7\u00e3o"
     },
     "contexto": {
       "type": "string",

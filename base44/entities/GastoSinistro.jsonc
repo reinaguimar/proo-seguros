@@ -80,11 +80,11 @@
     },
     "beneficiario_nome": {
       "type": "string",
-      "description": "Nome do beneficiário do acordo extrajudicial"
+      "description": "Nome do benefici\u00e1rio do acordo extrajudicial"
     },
     "beneficiario_cpf_cnpj": {
       "type": "string",
-      "description": "CPF ou CNPJ do beneficiário"
+      "description": "CPF ou CNPJ do benefici\u00e1rio"
     },
     "banco_nome": {
       "type": "string",
@@ -92,11 +92,11 @@
     },
     "banco_agencia": {
       "type": "string",
-      "description": "Agência bancária"
+      "description": "Ag\u00eancia banc\u00e1ria"
     },
     "banco_conta": {
       "type": "string",
-      "description": "Número da conta"
+      "description": "N\u00famero da conta"
     },
     "banco_tipo_conta": {
       "type": "string",
@@ -105,11 +105,11 @@
         "poupanca",
         "pagamento"
       ],
-      "description": "Tipo da conta bancária"
+      "description": "Tipo da conta banc\u00e1ria"
     },
     "banco_chave_pix": {
       "type": "string",
-      "description": "Chave PIX do beneficiário"
+      "description": "Chave PIX do benefici\u00e1rio"
     }
   },
   "required": [

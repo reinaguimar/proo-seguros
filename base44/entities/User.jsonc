@@ -16,11 +16,11 @@
         "type": "string"
       },
       "default": [],
-      "description": "IDs das filiais que o usuário pode acessar. Array vazio = acesso irrestrito a todas as filiais (admin global)."
+      "description": "IDs das filiais que o usu\u00e1rio pode acessar. Array vazio = acesso irrestrito a todas as filiais (admin global)."
     },
     "filial_id_padrao": {
       "type": "string",
-      "description": "ID da filial padrão do usuário, usada como contexto inicial no dashboard e filtros. Deve estar contida em filiais_permitidas quando esse array não for vazio."
+      "description": "ID da filial padr\u00e3o do usu\u00e1rio, usada como contexto inicial no dashboard e filtros. Deve estar contida em filiais_permitidas quando esse array n\u00e3o for vazio."
     }
   },
   "required": [

@@ -8,12 +8,12 @@
     },
     "ano": {
       "type": "number",
-      "description": "Ano de competência do contador"
+      "description": "Ano de compet\u00eancia do contador"
     },
     "ultimo_sequencial": {
       "type": "number",
       "default": 0,
-      "description": "Último número sequencial usado (NNNNNN). Atualizado exclusivamente pela server function gerarNumeroApolice."
+      "description": "\u00daltimo n\u00famero sequencial usado (NNNNNN). Atualizado exclusivamente pela server function gerarNumeroApolice."
     }
   },
   "required": [
