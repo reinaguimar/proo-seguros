@@ -222,6 +222,7 @@ export default function ApoliceDetalhes() {
   const { isPerfil } = usePermissoes();
   const [apolice, setApolice] = useState(null);
   const [filial, setFilial] = useState(null);
+  const [matriz, setMatriz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -244,6 +245,10 @@ export default function ApoliceDetalhes() {
             setFilial(f);
           } catch (_) {}
         }
+        try {
+          const matrizes = await base44.entities.Filial.filter({ tipo: "matriz" });
+          setMatriz(matrizes[0] || null);
+        } catch (_) {}
       } catch (err) {
         if (err.response?.status === 401 || err.response?.status === 403) {
           const cur = window.location.href;
@@ -347,6 +352,9 @@ export default function ApoliceDetalhes() {
   }
 
   const isSubRep = filial?.tipo === 'sub_representante';
+  const repNome = matriz?.nome || filial?.nome || '—';
+  const repCnpj = matriz?.cnpj || filial?.cnpj || '--';
+  const repTexto = `${repNome} - CNPJ: ${repCnpj}`;
   const franquiaPerc = (filial?.franquia_percentual != null ? filial.franquia_percentual : 6);
   const corPrimaria = filial?.cor_primaria || '#1a3a5c';
   const corTexto = filial?.cor_texto_cabecalho || '#ffffff';
@@ -443,7 +451,7 @@ export default function ApoliceDetalhes() {
               <div className="cert-cell"><div className="cert-cell-label">Apolice n.o</div><div className="cert-cell-value" style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 700 }}>{apolice.numero_apolice}</div></div>
             </div>
             <div className={`cert-grid ${isSubRep ? 'cert-grid-2' : ''}`} style={{ gridTemplateColumns: isSubRep ? '1fr 1fr' : '1fr' }}>
-              <div className="cert-cell"><div className="cert-cell-label">Representante</div><div className="cert-cell-value">NEW SOLUCOES LTDA - CNPJ: 13.995.255/0001-83</div></div>
+              <div className="cert-cell"><div className="cert-cell-label">Representante</div><div className="cert-cell-value">{repTexto}</div></div>
               {isSubRep && (
                 <div className="cert-cell"><div className="cert-cell-label">Sub-Representante</div><div className="cert-cell-value">{filial?.nome} - CNPJ: {filial?.cnpj || '--'}</div></div>
               )}
@@ -520,7 +528,7 @@ export default function ApoliceDetalhes() {
             <p className="cert-legal-title">Informacoes Regulamentares e Legais</p>
             <div className="cert-legal-ids">
               <p><strong>Seguradora:</strong> OON Seguradora S.A. - CNPJ: 43.249.519/0001-10 - Codigo Susep 110627</p>
-              <p><strong>Representante:</strong> NEW SOLUCOES LTDA - CNPJ: 13.995.255/0001-83</p>
+              <p><strong>Representante:</strong> {repTexto}</p>
               {isSubRep && (
                 <p><strong>Sub-Representante:</strong> {apolice.filial_nome || '-'} - CNPJ: {filial?.cnpj || '--'}</p>
               )}
@@ -530,9 +538,23 @@ export default function ApoliceDetalhes() {
               <p><strong>Prazo de Vigencia:</strong> Este seguro tem prazo de vigencia de 30 dias, podendo ser renovado mediante nova contratacao.</p>
               <p><strong>Franquia:</strong> As coberturas contratadas nao possuem franquia, salvo disposicao em contrario especificada nas condicoes gerais.</p>
               <p><strong>Importante:</strong> Este certificado comprova a contratacao do seguro e deve ser mantido em local seguro. Em caso de sinistro, entre em contato imediatamente com nossa central de atendimento. Para duvidas sobre coberturas, exclusoes e condicoes gerais, consulte a apolice completa disponivel em nosso site ou entre em contato conosco.</p>
-              {filial?.telefone_sac && <p><strong>SAC:</strong> Telefone {filial.telefone_sac}{filial?.email_sac ? ` | E-mail: ${filial.email_sac}` : ''}</p>}
-              <p><strong>Ouvidoria:</strong> Caso nao fique satisfeito com o atendimento, entre em contato com nossa ouvidoria atraves do telefone {filial?.telefone_ouvidoria || '0800 000 0000'} ou e-mail {filial?.email_ouvidoria || 'ouvidoria@gestaonew.com.br'}</p>
-              <p><strong>Site:</strong> {filial?.site || 'gestaonew.com.br'}</p>
+              {(() => {
+                const sacTel = filial?.telefone_sac || matriz?.telefone_sac;
+                const sacEmail = filial?.email_sac || matriz?.email_sac;
+                if (!sacTel) return null;
+                return <p><strong>SAC:</strong> Telefone {sacTel}{sacEmail ? ` | E-mail: ${sacEmail}` : ''}</p>;
+              })()}
+              {(() => {
+                const ouvTel = filial?.telefone_ouvidoria || matriz?.telefone_ouvidoria;
+                const ouvEmail = filial?.email_ouvidoria || matriz?.email_ouvidoria;
+                if (!ouvTel && !ouvEmail) return null;
+                return <p><strong>Ouvidoria:</strong> Caso nao fique satisfeito com o atendimento, entre em contato com nossa ouvidoria{ouvTel ? ` atraves do telefone ${ouvTel}` : ''}{ouvTel && ouvEmail ? ' ou ' : ''}{ouvEmail ? `e-mail ${ouvEmail}` : ''}</p>;
+              })()}
+              {(() => {
+                const siteFinal = filial?.site || matriz?.site;
+                if (!siteFinal) return null;
+                return <p><strong>Site:</strong> {siteFinal}</p>;
+              })()}
             </div>
             <p className="cert-authenticity">Este documento foi gerado eletronicamente em {now} e possui validade legal. Para verificar a autenticidade deste certificado, acesse nosso portal com o numero da apolice.</p>
           </div>
