@@ -192,6 +192,15 @@ export default function GestaoFiliais() {
       ? [...outrosProdutos, "RCFV"]
       : outrosProdutos;
 
+    // Preços fixos do RCF-V: manter apenas os LMIs habilitados, valor numérico
+    const precosForm = form.rcfv_precos || {};
+    const rcfvPrecosFinal = {};
+    lmisRcfv.forEach(lmi => {
+      const raw = precosForm[lmi] ?? precosForm[String(lmi)] ?? RCFV_PRECOS_PADRAO[lmi] ?? 0;
+      const num = typeof raw === "number" ? raw : parseFloat(String(raw).replace(/\./g, "").replace(",", "."));
+      rcfvPrecosFinal[String(lmi)] = isNaN(num) ? 0 : num;
+    });
+
     setSalvando(true);
     const dados = {
       nome: form.nome.trim(),
@@ -204,6 +213,7 @@ export default function GestaoFiliais() {
       tipo: form.tipo || "sub_representante",
       produtos_permitidos: produtosPermitidosFinal,
       rcfv_lmis_permitidos: lmisRcfv,
+      rcfv_precos: rcfvPrecosFinal,
       logo_url: form.logo_url || "",
       cor_primaria: form.cor_primaria || "",
       cor_texto_cabecalho: form.cor_texto_cabecalho || "#ffffff",
