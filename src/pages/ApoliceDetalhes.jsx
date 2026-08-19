@@ -433,12 +433,12 @@ export default function ApoliceDetalhes() {
         {/* CABECALHO */}
         <div className="cert-header" style={{ backgroundColor: corPrimaria }}>
           <div className="cert-header-left">
-            <span className="cert-h-name" style={{ color: corTexto }}>{filial?.nome || apolice.filial_nome || 'OON SEGURADORA SA'}</span>
-            {filial?.cnpj && <span className="cert-h-sub" style={{ color: corTexto, opacity: 0.8 }}>CNPJ: {filial.cnpj}</span>}
-            {filial?.site && <span className="cert-h-sub" style={{ color: corTexto, opacity: 0.8 }}>{filial.site}</span>}
+            <span className="cert-h-name" style={{ color: corTexto }}>{filial?.nome || matriz?.nome || apolice.filial_nome || 'OON SEGURADORA SA'}</span>
+            {(filial?.cnpj || matriz?.cnpj) && <span className="cert-h-sub" style={{ color: corTexto, opacity: 0.8 }}>CNPJ: {fmtCnpj(filial?.cnpj || matriz?.cnpj)}</span>}
+            {(filial?.site || matriz?.site) && <span className="cert-h-sub" style={{ color: corTexto, opacity: 0.8 }}>{filial?.site || matriz?.site}</span>}
           </div>
-          {filial?.logo_url ? (
-            <img src={filial.logo_url} alt="Logo" style={{ maxHeight: '48px', objectFit: 'contain' }} />
+          {(filial?.logo_url || matriz?.logo_url) ? (
+            <img src={filial?.logo_url || matriz?.logo_url} alt="Logo" style={{ maxHeight: '48px', objectFit: 'contain' }} />
           ) : (
             <div className="cert-h-logo" style={{ color: corAcento }}>OON</div>
           )}
