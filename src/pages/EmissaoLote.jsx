@@ -202,8 +202,13 @@ const parseCSV = (text) => {
 };
 
 // ─── Cálculo de coberturas ────────────────────────────────────────────────────
-const calcularCoberturas = (premioBruto, lmiGeral, rcfvLmi) => {
-  const percentualTotal = COBERTURAS_FIXAS.filter(c => PRODUTOS_PADRAO.includes(c.produto))
+const calcularCoberturas = (premioBruto, lmiGeral, rcfvLmi, rcfvPreco = 35.90) => {
+  // RCF-V é produto de PREÇO FIXO: sai do rateio e cobra o valor configurado na filial.
+  const temRCFV = PRODUTOS_PADRAO.includes("RCFV");
+  const valorFixoRcfv = temRCFV ? rcfvPreco : 0;
+  const distribuivel = Math.round((premioBruto - valorFixoRcfv) * 100) / 100;
+  const percentualTotal = COBERTURAS_FIXAS
+    .filter(c => c.produto !== "RCFV" && PRODUTOS_PADRAO.includes(c.produto))
     .reduce((s, c) => s + c.percentual, 0);
 
   return COBERTURAS_FIXAS.map(cobertura => {
@@ -212,9 +217,16 @@ const calcularCoberturas = (premioBruto, lmiGeral, rcfvLmi) => {
     let valor_maximo = 0;
 
     if (isSelected) {
-      valor_maximo = cobertura.produto === "RCFV" ? rcfvLmi : lmiGeral;
-      const rel = cobertura.percentual / percentualTotal;
-      premio_bruto = Math.round(premioBruto * rel * 100) / 100;
+      if (cobertura.produto === "RCFV") {
+        valor_maximo = rcfvLmi;
+        premio_bruto = valorFixoRcfv;
+      } else {
+        valor_maximo = lmiGeral;
+        if (percentualTotal > 0) {
+          const rel = cobertura.percentual / percentualTotal;
+          premio_bruto = Math.round(distribuivel * rel * 100) / 100;
+        }
+      }
     }
 
     const premio_comercial = Math.round((premio_bruto - premio_bruto * CONFIG.aliquota_iof) * 100) / 100;
@@ -383,7 +395,12 @@ export default function EmissaoLote() {
       filialId = filial.id;
     }
 
-    const coberturas = calcularCoberturas(row.premio_bruto, row.lmi_geral, RCFV_LMI_PADRAO);
+    const rcfvPrecoLote = (() => {
+      const m = filial?.rcfv_precos || {};
+      const v = m[RCFV_LMI_PADRAO] ?? m[String(RCFV_LMI_PADRAO)];
+      return (v === undefined || v === null || v === "") ? 35.90 : Number(v);
+    })();
+    const coberturas = calcularCoberturas(row.premio_bruto, row.lmi_geral, RCFV_LMI_PADRAO, rcfvPrecoLote);
     const iof_total = Math.round(row.premio_bruto * CONFIG.aliquota_iof * 100) / 100;
     const corretagem = Math.round(row.premio_bruto * CONFIG.percentual_corretagem * 100) / 100;
 
