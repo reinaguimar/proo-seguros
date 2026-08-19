@@ -108,11 +108,11 @@ export default function RevisarApolice() {
     return `110627.${year}.02.031.${yyyyy}.${zzz}`;
   };
 
-  const calculateCoberturas = (produtos, lmi_geral, premio_bruto) => {
+  const calculateCoberturas = (produtos, lmi_geral, premio_bruto, rcfvPreco = 35.90, rcfvLmi = 100000) => {
     let premio_bruto_distribuivel = premio_bruto;
     const temRCFV = produtos.includes("RCFV");
     if (temRCFV) {
-      premio_bruto_distribuivel -= COBERTURAS_FIXAS.find(c => c.produto === "RCFV").valor_fixo;
+      premio_bruto_distribuivel -= rcfvPreco;
     }
 
     const produtosSelecionados = COBERTURAS_FIXAS.filter(c => produtos.includes(c.produto));
@@ -125,9 +125,9 @@ export default function RevisarApolice() {
       
       const isSelected = produtos.includes(cobertura.produto);
       if (isSelected) {
-        valor_maximo = cobertura.lmi_fixo || lmi_geral;
+        valor_maximo = cobertura.produto === "RCFV" ? rcfvLmi : lmi_geral;
         if (cobertura.produto === "RCFV") {
-          premio_bruto = cobertura.valor_fixo;
+          premio_bruto = rcfvPreco;
         } else if (percentual_total_selecionado > 0) {
           const percentual_relativo = cobertura.percentual / percentual_total_selecionado;
           premio_bruto = Math.round(premio_bruto_distribuivel * percentual_relativo * 100) / 100;
@@ -205,10 +205,19 @@ export default function RevisarApolice() {
       const novoComercial = Math.round((novoPremioProporcional - novoIOF) * 100) / 100;
       const novaCorretagem = Math.round(novoPremioProporcional * CONFIG.percentual_corretagem * 100) / 100;
 
+      // Preço fixo do RCF-V configurado na filial (por LMI da apólice original)
+      const rcfvLmiApolice = apoliceOriginal.rcfv_lmi || 100000;
+      const filiaisRcfv = await base44.entities.Filial.filter({ id: apoliceOriginal.filial_id });
+      const rcfvPrecosMap = filiaisRcfv[0]?.rcfv_precos || {};
+      const rcfvPrecoRaw = rcfvPrecosMap[rcfvLmiApolice] ?? rcfvPrecosMap[String(rcfvLmiApolice)];
+      const rcfvPreco = (rcfvPrecoRaw === undefined || rcfvPrecoRaw === null || rcfvPrecoRaw === "") ? 35.90 : Number(rcfvPrecoRaw);
+
       const coberturasCalculadas = calculateCoberturas(
         formData.produtos, 
         parseCurrency(formData.lmi_geral), 
-        novoPremioProporcional
+        novoPremioProporcional,
+        rcfvPreco,
+        rcfvLmiApolice
       );
 
       const novaApoliceData = {
@@ -228,6 +237,7 @@ export default function RevisarApolice() {
         lmi_geral: parseCurrency(formData.lmi_geral),
         premio_bruto_total: novoPremioProporcional,
         produtos: formData.produtos,
+        rcfv_lmi: formData.produtos.includes("RCFV") ? rcfvLmiApolice : undefined,
         id_objeto: apoliceOriginal.id_objeto,
         apolice_revisada_de: apoliceOriginal.id
       };
