@@ -74,6 +74,7 @@ export default function GestaoUsuarios() {
   const [filiais, setFiliais] = useState([]);
   const [filialDialog, setFilialDialog] = useState({ open: false, usuario: null, acesso: 'total', selecionadas: [], padrao: '' });
   const [revogarDialog, setRevogarDialog] = useState({ open: false, usuario: null, loading: false });
+  const [conviteDialog, setConviteDialog] = useState({ open: false, email: '', perfil: 'usuario', loading: false });
 
   useEffect(() => {
     loadData();
@@ -235,6 +236,26 @@ export default function GestaoUsuarios() {
     }
   };
 
+  const handleConvidarUsuario = async () => {
+    try {
+      setError(null);
+      const email = conviteDialog.email.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError('Informe um e-mail válido.');
+        return;
+      }
+      setConviteDialog(prev => ({ ...prev, loading: true }));
+      await base44.users.inviteUser(email, conviteDialog.perfil);
+      setSuccessMessage(`Convite enviado para ${email}. O usuário receberá um e-mail para acessar o sistema.`);
+      setConviteDialog({ open: false, email: '', perfil: 'usuario', loading: false });
+      await loadData();
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err) {
+      setError('Erro ao convidar usuário: ' + (err?.message || 'desconhecido'));
+      setConviteDialog(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   const handleRevogarAcesso = async () => {
     const usuario = revogarDialog.usuario;
     if (!usuario) return;
@@ -302,6 +323,11 @@ export default function GestaoUsuarios() {
               Gerencie permissões e visualize todos os usuários do sistema
             </p>
           </div>
+          {pode('usuarios', 'criar') && (
+            <Button onClick={() => setConviteDialog({ open: true, email: '', perfil: 'usuario', loading: false })}>
+              <UserPlus className="w-4 h-4 mr-2" /> Novo Usuário
+            </Button>
+          )}
         </div>
 
         {/* Bootstrap Alert */}
@@ -598,6 +624,49 @@ export default function GestaoUsuarios() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Dialog Novo Usuário (Convite) */}
+        <Dialog open={conviteDialog.open} onOpenChange={(open) => setConviteDialog(prev => ({ ...prev, open }))}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2"><UserPlus className="w-5 h-5 text-blue-600" /> Convidar Novo Usuário</DialogTitle>
+              <DialogDescription>
+                O usuário receberá um e-mail com instruções para acessar o sistema. O perfil poderá ser ajustado depois.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="convite-email">E-mail</Label>
+                <Input
+                  id="convite-email"
+                  type="email"
+                  placeholder="nome@empresa.com"
+                  value={conviteDialog.email}
+                  onChange={(e) => setConviteDialog(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Perfil inicial</Label>
+                <Select value={conviteDialog.perfil} onValueChange={(v) => setConviteDialog(prev => ({ ...prev, perfil: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Usuário</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500">O perfil detalhado (gerente, auditor, etc.) pode ser ajustado após o aceite.</p>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setConviteDialog({ open: false, email: '', perfil: 'usuario', loading: false })}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleConvidarUsuario} disabled={conviteDialog.loading}>
+                  {conviteDialog.loading ? 'Enviando...' : 'Enviar Convite'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Dialog Revogar Acesso */}
         <Dialog open={revogarDialog.open} onOpenChange={(open) => setRevogarDialog(prev => ({ ...prev, open }))}>
