@@ -121,6 +121,7 @@ export default function GestaoFiliais() {
       rcfv_lmis_permitidos: filial.rcfv_lmis_permitidos && filial.rcfv_lmis_permitidos.length > 0
         ? [...filial.rcfv_lmis_permitidos]
         : [30000, 50000, 100000],
+      rcfv_precos: { ...RCFV_PRECOS_PADRAO, ...(filial.rcfv_precos || {}) },
       logo_url: filial.logo_url || "",
       cor_primaria: filial.cor_primaria || "",
       cor_texto_cabecalho: filial.cor_texto_cabecalho || "#ffffff",
