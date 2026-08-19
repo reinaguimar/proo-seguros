@@ -217,6 +217,13 @@ const maskCpfCnpj = (doc) => {
   return doc;
 };
 
+const fmtCnpj = (v) => {
+  if (!v) return '--';
+  const d = v.replace(/\D/g, '');
+  if (d.length === 14) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12,14)}`;
+  return v;
+};
+
 export default function ApoliceDetalhes() {
   const navigate = useNavigate();
   const { isPerfil } = usePermissoes();
@@ -354,7 +361,7 @@ export default function ApoliceDetalhes() {
   const isSubRep = filial?.tipo === 'sub_representante';
   const repNome = matriz?.nome || filial?.nome || '—';
   const repCnpj = matriz?.cnpj || filial?.cnpj || '--';
-  const repTexto = `${repNome} - CNPJ: ${repCnpj}`;
+  const repTexto = `${repNome} - CNPJ: ${fmtCnpj(repCnpj)}`;
   const franquiaPerc = (filial?.franquia_percentual != null ? filial.franquia_percentual : 6);
   const corPrimaria = filial?.cor_primaria || '#1a3a5c';
   const corTexto = filial?.cor_texto_cabecalho || '#ffffff';
@@ -453,7 +460,7 @@ export default function ApoliceDetalhes() {
             <div className={`cert-grid ${isSubRep ? 'cert-grid-2' : ''}`} style={{ gridTemplateColumns: isSubRep ? '1fr 1fr' : '1fr' }}>
               <div className="cert-cell"><div className="cert-cell-label">Representante</div><div className="cert-cell-value">{repTexto}</div></div>
               {isSubRep && (
-                <div className="cert-cell"><div className="cert-cell-label">Sub-Representante</div><div className="cert-cell-value">{filial?.nome} - CNPJ: {filial?.cnpj || '--'}</div></div>
+                <div className="cert-cell"><div className="cert-cell-label">Sub-Representante</div><div className="cert-cell-value">{filial?.nome} - CNPJ: {fmtCnpj(filial?.cnpj)}</div></div>
               )}
             </div>
             <div className="cert-grid cert-grid-3">
@@ -530,7 +537,7 @@ export default function ApoliceDetalhes() {
               <p><strong>Seguradora:</strong> OON Seguradora S.A. - CNPJ: 43.249.519/0001-10 - Codigo Susep 110627</p>
               <p><strong>Representante:</strong> {repTexto}</p>
               {isSubRep && (
-                <p><strong>Sub-Representante:</strong> {apolice.filial_nome || '-'} - CNPJ: {filial?.cnpj || '--'}</p>
+                <p><strong>Sub-Representante:</strong> {apolice.filial_nome || '-'} - CNPJ: {fmtCnpj(filial?.cnpj)}</p>
               )}
             </div>
             <div className="cert-legal-body">
