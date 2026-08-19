@@ -6,8 +6,28 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
   Upload, Play, CheckCircle, XCircle, Loader2, AlertCircle,
-  FileText, BarChart3, RefreshCw, Info
+  FileText, BarChart3, RefreshCw, Info, Download
 } from "lucide-react";
+
+// ─── Exemplo de CSV para download ─────────────────────────────────────────────
+const baixarExemploCSV = () => {
+  const cabecalho = "filial;cpf_segurado;cpf_beneficiario;placa;data_inicio_apolice;data_movimento;valor_lmi;premio_bruto";
+  const linhasExemplo = [
+    "Proo Matriz;11122233344;11122233344;ABC1D23;01/09/2026;01/09/2026;30000,00;150,00",
+    "Proo Matriz;22233344455;22233344455;DEF4G56;01/09/2026;01/09/2026;50000,00;200,00",
+    "Proo Filial SP;33344455566;33344455566;GHI7H89;01/09/2026;01/09/2026;30000,00;150,00",
+  ];
+  const conteudo = [cabecalho, ...linhasExemplo].join("\n");
+  const blob = new Blob(["\uFEFF" + conteudo], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "modelo_emissao_lote.csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 // ─── Configurações fixas ────────────────────────────────────────────────────
 const CONFIG = {
@@ -562,6 +582,12 @@ export default function EmissaoLote() {
             <p className="text-sm font-medium text-slate-700">Clique para selecionar o CSV</p>
             <p className="text-xs text-slate-400 mt-1">Formato: filial;CPF segurado;CPF beneficiario;Placa;data inicio apolice;data do movimento;valor lmi;premio bruto</p>
             <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleFile} />
+          </div>
+
+          <div className="flex justify-center mt-4">
+            <Button variant="outline" size="sm" onClick={baixarExemploCSV} className="gap-2">
+              <Download className="w-4 h-4" /> Baixar exemplo de CSV
+            </Button>
           </div>
 
           {carregandoApolices && (
