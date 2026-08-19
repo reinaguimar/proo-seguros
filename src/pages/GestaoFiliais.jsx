@@ -582,26 +582,47 @@ export default function GestaoFiliais() {
                   </label>
                 ))}
 
-                {/* Subgrupo RCF-V por LMI */}
+                {/* Subgrupo RCF-V por LMI (com preço fixo configurável) */}
                 <div className="mt-2 pt-2 border-t border-slate-100">
-                  <p className="text-sm font-medium text-slate-700 mb-2">RCF-V (Danos a Terceiros)</p>
-                  <div className="ml-4 space-y-2">
-                    {RCFV_LMIS.map(opcao => (
-                      <label key={opcao.value} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={(form.rcfv_lmis_permitidos || []).includes(opcao.value)}
-                          onChange={() => {
-                            const atual = form.rcfv_lmis_permitidos || [];
-                            const novo = atual.includes(opcao.value)
-                              ? atual.filter(v => v !== opcao.value)
-                              : [...atual, opcao.value];
-                            setForm(f => ({ ...f, rcfv_lmis_permitidos: novo }));
-                          }}
-                        />
-                        <span className="text-sm">{opcao.label}</span>
-                      </label>
-                    ))}
+                  <p className="text-sm font-medium text-slate-700 mb-1">RCF-V (Danos a Terceiros)</p>
+                  <p className="text-xs text-slate-500 mb-2">Produto de preço fixo — defina o prêmio (R$) cobrado por LMI. Esse valor é aplicado na emissão.</p>
+                  <div className="ml-1 space-y-2">
+                    {RCFV_LMIS.map(opcao => {
+                      const marcado = (form.rcfv_lmis_permitidos || []).includes(opcao.value);
+                      return (
+                      <div key={opcao.value} className="flex items-center justify-between gap-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={marcado}
+                            onChange={() => {
+                              const atual = form.rcfv_lmis_permitidos || [];
+                              const novo = atual.includes(opcao.value)
+                                ? atual.filter(v => v !== opcao.value)
+                                : [...atual, opcao.value];
+                              setForm(f => ({ ...f, rcfv_lmis_permitidos: novo }));
+                            }}
+                          />
+                          <span className="text-sm">{opcao.label}</span>
+                        </label>
+                        <div className={`flex items-center gap-1 ${marcado ? "" : "opacity-40"}`}>
+                          <span className="text-xs text-slate-500">Prêmio R$</span>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            disabled={!marcado}
+                            value={form.rcfv_precos?.[opcao.value] ?? ""}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setForm(f => ({ ...f, rcfv_precos: { ...(f.rcfv_precos || {}), [opcao.value]: v } }));
+                            }}
+                            placeholder="0,00"
+                            className="w-24 px-2 py-1 text-sm text-right border border-slate-300 rounded-md disabled:bg-slate-100"
+                          />
+                        </div>
+                      </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
