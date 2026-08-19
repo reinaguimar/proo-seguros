@@ -41,6 +41,9 @@ const RCFV_LMIS = [
   { value: 100000, label: "RCF-V — R$ 100.000" },
 ];
 
+// Preço fixo (prêmio bruto) padrão do RCF-V por LMI. Usado como fallback quando a filial ainda não configurou.
+const RCFV_PRECOS_PADRAO = { 30000: 35.90, 50000: 35.90, 100000: 35.90 };
+
 const TODOS_PRODUTOS = ["FR", "RCFV", "COL_PARCIAL", "COL_TOTAL", "INCENDIO"];
 
 const filialVazio = {
@@ -54,6 +57,7 @@ const filialVazio = {
   tipo: "sub_representante",
   produtos_permitidos: [...TODOS_PRODUTOS],
   rcfv_lmis_permitidos: [30000, 50000, 100000],
+  rcfv_precos: { ...RCFV_PRECOS_PADRAO },
   logo_url: "",
   cor_primaria: "",
   cor_texto_cabecalho: "#ffffff",
