@@ -208,8 +208,7 @@ export default function RevisarApolice() {
       // Preço fixo do RCF-V configurado na filial (por LMI da apólice original)
       const rcfvLmiApolice = apoliceOriginal.rcfv_lmi || 100000;
       const filiaisRcfv = await base44.entities.Filial.filter({ id: apoliceOriginal.filial_id });
-      const rcfvPrecosMap = filiaisRcfv[0]?.rcfv_precos || {};
-      const rcfvPrecoRaw = rcfvPrecosMap[rcfvLmiApolice] ?? rcfvPrecosMap[String(rcfvLmiApolice)];
+      const rcfvPrecoRaw = filiaisRcfv[0]?.["rcfv_preco_" + rcfvLmiApolice];
       const rcfvPreco = (rcfvPrecoRaw === undefined || rcfvPrecoRaw === null || rcfvPrecoRaw === "") ? 35.90 : Number(rcfvPrecoRaw);
 
       const coberturasCalculadas = calculateCoberturas(
