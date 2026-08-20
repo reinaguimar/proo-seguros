@@ -43,7 +43,7 @@ export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXA
         const filial = filiais[0];
         setProdutosPermitidos(filial?.produtos_permitidos || null);
         setRcfvLmisPermitidos(filial?.rcfv_lmis_permitidos || null);
-        setRcfvPrecos(filial?.rcfv_precos || null);
+        setRcfvPrecos(filial ? { 30000: filial.rcfv_preco_30000, 50000: filial.rcfv_preco_50000, 100000: filial.rcfv_preco_100000 } : null);
       } catch {
         setProdutosPermitidos(null);
         setRcfvLmisPermitidos(null);
