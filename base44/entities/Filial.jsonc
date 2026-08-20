@@ -64,6 +64,21 @@
       },
       "description": "Limites de RCF-V (LMI) que esta filial pode comercializar. Valores poss\u00edveis: 30000, 50000, 100000"
     },
+    "rcfv_preco_30000": {
+      "type": "number",
+      "default": 35.9,
+      "description": "Premio fixo (R$) do RCF-V para o LMI de R$ 30.000, aplicado na emissao"
+    },
+    "rcfv_preco_50000": {
+      "type": "number",
+      "default": 35.9,
+      "description": "Premio fixo (R$) do RCF-V para o LMI de R$ 50.000, aplicado na emissao"
+    },
+    "rcfv_preco_100000": {
+      "type": "number",
+      "default": 35.9,
+      "description": "Premio fixo (R$) do RCF-V para o LMI de R$ 100.000, aplicado na emissao"
+    },
     "logo_url": {
       "type": "string",
       "description": "URL da logo da filial para uso no certificado"
