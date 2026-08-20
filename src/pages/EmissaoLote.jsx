@@ -396,8 +396,7 @@ export default function EmissaoLote() {
     }
 
     const rcfvPrecoLote = (() => {
-      const m = filial?.rcfv_precos || {};
-      const v = m[RCFV_LMI_PADRAO] ?? m[String(RCFV_LMI_PADRAO)];
+      const v = filial?.["rcfv_preco_" + RCFV_LMI_PADRAO];
       return (v === undefined || v === null || v === "") ? 35.90 : Number(v);
     })();
     const coberturas = calcularCoberturas(row.premio_bruto, row.lmi_geral, RCFV_LMI_PADRAO, rcfvPrecoLote);
