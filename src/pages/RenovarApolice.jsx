@@ -126,9 +126,9 @@ export default function RenovarApolice() {
 
     // RCF-V é produto de PREÇO FIXO: cobra o valor configurado no cadastro da filial (por LMI).
     const filiaisRcfv = await base44.entities.Filial.filter({ id: apoliceOriginal.filial_id });
-    const rcfvPrecos = filiaisRcfv[0]?.rcfv_precos || {};
+    const filRcfv = filiaisRcfv[0] || {};
     const precoRcfv = (lmi) => {
-      const v = rcfvPrecos[lmi] ?? rcfvPrecos[String(lmi)];
+      const v = filRcfv["rcfv_preco_" + lmi];
       return (v === undefined || v === null || v === "") ? 35.90 : Number(v);
     };
     const temRCFV = data.produtos.includes("RCFV");
