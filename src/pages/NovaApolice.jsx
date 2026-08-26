@@ -80,7 +80,7 @@ export default function NovaApolice() {
     id_segurado: '',
     id_beneficiario: '',
     lmi_geral: '',
-    produtos: ["FR"], // "Furto e Roubo" é básico
+    produtos: ["FR"],
     premio_bruto: '',
     id_objeto: '',
     data_movimento: new Date().toISOString().split('T')[0],
@@ -311,8 +311,6 @@ export default function NovaApolice() {
         break;
       case 3:
         if (!formData.produtos || formData.produtos.length === 0) errors.push("Selecione ao menos um produto");
-        // Check if "FR" (Furto e Roubo) is always selected as it's the base.
-        if (!formData.produtos.includes("FR")) errors.push("O produto 'Furto e Roubo' é obrigatório.");
         break;
       default:
         break;

@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 const PRODUTOS = [
-  { value: "FR", label: "Furto e Roubo", description: "Proteção contra furto e roubo do veículo. (Cobertura Básica)", isBasic: true },
+  { value: "FR", label: "Furto e Roubo", description: "Proteção contra furto e roubo do veículo. (Cobertura Básica)" },
   { value: "COL_PARCIAL", label: "Colisão Parcial", description: "Cobertura para danos parciais por colisão." },
   { value: "COL_TOTAL", label: "Colisão Total", description: "Cobertura para perda total por colisão." },
   { value: "INCENDIO", label: "Incendio e Fenomenos da Natureza", description: "Proteção contra danos causados por incêndio e fenômenos da natureza." },
@@ -104,17 +104,17 @@ export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXA
             (formData.produtos || []).includes(produto.value)
               ? 'bg-blue-50 border-blue-300'
               : 'border-slate-200 hover:bg-slate-50'
-          } ${produto.isBasic ? 'opacity-70' : ''} ${isBloqueado ? 'opacity-40' : ''}`}>
-            <Checkbox
-              id={produto.value}
-              checked={(formData.produtos || []).includes(produto.value)}
-              onCheckedChange={(checked) => handleProdutoToggle(produto.value, checked)}
-              disabled={produto.isBasic || isBloqueado}
-              className="mt-1"
-            />
+          } ${isBloqueado ? 'opacity-40' : ''}`}>
+           <Checkbox
+             id={produto.value}
+             checked={(formData.produtos || []).includes(produto.value)}
+             onCheckedChange={(checked) => handleProdutoToggle(produto.value, checked)}
+             disabled={isBloqueado}
+             className="mt-1"
+           />
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <Label htmlFor={produto.value} className={`text-base font-medium text-slate-900 ${!produto.isBasic && !isBloqueado && "cursor-pointer"}`}>
+                <Label htmlFor={produto.value} className={`text-base font-medium text-slate-900 ${!isBloqueado && "cursor-pointer"}`}>
                   {produto.label}
                   {isBloqueado && <span className="ml-2 text-xs text-red-500 font-normal">Não disponível para esta filial</span>}
                 </Label>
