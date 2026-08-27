@@ -46,10 +46,14 @@ Deno.serve(async (req) => {
     }
     
     const perfil_anterior = usuarioAlvo.perfil_sistema;
-    
-    // Atualizar perfil
+
+    // Sincronizar role da plataforma: administrador/super_administrador => 'admin', demais => 'user'
+    const rolePlataforma = (novo_perfil === 'administrador' || novo_perfil === 'super_administrador') ? 'admin' : 'user';
+
+    // Atualizar perfil e role
     await base44.asServiceRole.entities.User.update(usuario_id, {
-      perfil_sistema: novo_perfil
+      perfil_sistema: novo_perfil,
+      role: rolePlataforma
     });
     
     // Registrar log (se entidade LogSistema existir)

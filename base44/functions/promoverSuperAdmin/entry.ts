@@ -23,9 +23,10 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
     
-    // Promover o usuário atual a super admin
+    // Promover o usuário atual a super admin (sincroniza role da plataforma)
     await base44.asServiceRole.entities.User.update(user.id, {
       perfil_sistema: 'super_administrador',
+      role: 'admin',
       ativo: true
     });
     

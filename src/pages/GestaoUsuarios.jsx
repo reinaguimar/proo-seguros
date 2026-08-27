@@ -74,7 +74,7 @@ export default function GestaoUsuarios() {
   const [filiais, setFiliais] = useState([]);
   const [filialDialog, setFilialDialog] = useState({ open: false, usuario: null, acesso: 'total', selecionadas: [], padrao: '' });
   const [revogarDialog, setRevogarDialog] = useState({ open: false, usuario: null, loading: false });
-  const [conviteDialog, setConviteDialog] = useState({ open: false, email: '', perfil: 'usuario', loading: false });
+  const [conviteDialog, setConviteDialog] = useState({ open: false, email: '', perfil: 'user', loading: false });
 
   useEffect(() => {
     loadData();
@@ -245,7 +245,7 @@ export default function GestaoUsuarios() {
         return;
       }
       setConviteDialog(prev => ({ ...prev, loading: true }));
-      await base44.users.inviteUser(email, conviteDialog.perfil);
+      await base44.users.inviteUser(email, conviteDialog.perfil === 'admin' ? 'admin' : 'user');
       setSuccessMessage(`Convite enviado para ${email}. O usuário receberá um e-mail para acessar o sistema.`);
       setConviteDialog({ open: false, email: '', perfil: 'usuario', loading: false });
       await loadData();
@@ -324,7 +324,7 @@ export default function GestaoUsuarios() {
             </p>
           </div>
           {pode('usuarios', 'criar') && (
-            <Button onClick={() => setConviteDialog({ open: true, email: '', perfil: 'usuario', loading: false })}>
+            <Button onClick={() => setConviteDialog({ open: true, email: '', perfil: 'user', loading: false })}>
               <UserPlus className="w-4 h-4 mr-2" /> Novo Usuário
             </Button>
           )}
@@ -657,7 +657,7 @@ export default function GestaoUsuarios() {
                 <p className="text-xs text-slate-500">O perfil detalhado (gerente, auditor, etc.) pode ser ajustado após o aceite.</p>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setConviteDialog({ open: false, email: '', perfil: 'usuario', loading: false })}>
+                <Button variant="outline" onClick={() => setConviteDialog({ open: false, email: '', perfil: 'user', loading: false })}>
                   Cancelar
                 </Button>
                 <Button onClick={handleConvidarUsuario} disabled={conviteDialog.loading}>

@@ -55,6 +55,14 @@ Deno.serve(async (req) => {
         updates.ativo = true;
         precisaAtualizar = true;
       }
+
+      // REGRA 5: Sincronizar role da plataforma com perfil_sistema
+      // administrador/super_administrador => 'admin', demais => 'user'
+      const roleEsperado = (usuario.perfil_sistema === 'administrador' || usuario.perfil_sistema === 'super_administrador') ? 'admin' : 'user';
+      if (usuario.role !== roleEsperado) {
+        updates.role = roleEsperado;
+        precisaAtualizar = true;
+      }
       
       // Atualizar se necessário
       if (precisaAtualizar) {
