@@ -39,6 +39,14 @@ const CONFIG = {
 const PRODUTOS_PADRAO = ["FR", "COL_PARCIAL", "COL_TOTAL", "INCENDIO", "RCFV"];
 const RCFV_LMI_PADRAO = 30000;
 
+const PRODUTOS_OPCOES = [
+  { value: "FR", label: "Furto e Roubo" },
+  { value: "COL_PARCIAL", label: "Colisão Parcial" },
+  { value: "COL_TOTAL", label: "Colisão Total" },
+  { value: "INCENDIO", label: "Incêndio e Fenômenos da Natureza" },
+  { value: "RCFV", label: "RCF-V — LMI R$ 30.000,00" },
+];
+
 const COBERTURAS_FIXAS = [
   { id_cobertura: "001", ramo: 31, nome: "Furto",                            percentual: 0.20, produto: "FR" },
   { id_cobertura: "002", ramo: 31, nome: "Roubo",                            percentual: 0.20, produto: "FR" },
@@ -202,17 +210,17 @@ const parseCSV = (text) => {
 };
 
 // ─── Cálculo de coberturas ────────────────────────────────────────────────────
-const calcularCoberturas = (premioBruto, lmiGeral, rcfvLmi, rcfvPreco = 35.90) => {
+const calcularCoberturas = (premioBruto, lmiGeral, rcfvLmi, rcfvPreco = 35.90, produtos = PRODUTOS_PADRAO) => {
   // RCF-V é produto de PREÇO FIXO: sai do rateio e cobra o valor configurado na filial.
-  const temRCFV = PRODUTOS_PADRAO.includes("RCFV");
+  const temRCFV = produtos.includes("RCFV");
   const valorFixoRcfv = temRCFV ? rcfvPreco : 0;
   const distribuivel = Math.round((premioBruto - valorFixoRcfv) * 100) / 100;
   const percentualTotal = COBERTURAS_FIXAS
-    .filter(c => c.produto !== "RCFV" && PRODUTOS_PADRAO.includes(c.produto))
+    .filter(c => c.produto !== "RCFV" && produtos.includes(c.produto))
     .reduce((s, c) => s + c.percentual, 0);
 
   return COBERTURAS_FIXAS.map(cobertura => {
-    const isSelected = PRODUTOS_PADRAO.includes(cobertura.produto);
+    const isSelected = produtos.includes(cobertura.produto);
     let premio_bruto = 0;
     let valor_maximo = 0;
 
@@ -276,6 +284,7 @@ export default function EmissaoLote() {
   const [rodando, setRodando] = useState(false);
   const [progresso, setProgresso] = useState(0);
   const [carregandoApolices, setCarregandoApolices] = useState(false);
+  const [produtosSelecionados, setProdutosSelecionados] = useState([...PRODUTOS_PADRAO]);
   const fileRef = useRef();
   const pauseRef = useRef(false);
 
@@ -399,7 +408,7 @@ export default function EmissaoLote() {
       const v = filial?.["rcfv_preco_" + RCFV_LMI_PADRAO];
       return (v === undefined || v === null || v === "") ? 35.90 : Number(v);
     })();
-    const coberturas = calcularCoberturas(row.premio_bruto, row.lmi_geral, RCFV_LMI_PADRAO, rcfvPrecoLote);
+    const coberturas = calcularCoberturas(row.premio_bruto, row.lmi_geral, RCFV_LMI_PADRAO, rcfvPrecoLote, produtosSelecionados);
     const iof_total = Math.round(row.premio_bruto * CONFIG.aliquota_iof * 100) / 100;
     const corretagem = Math.round(row.premio_bruto * CONFIG.percentual_corretagem * 100) / 100;
 
@@ -419,7 +428,7 @@ export default function EmissaoLote() {
       data_movimento: row.data_movimento || row.data_inicio,
       lmi_geral: row.lmi_geral,
       premio_bruto_total: row.premio_bruto,
-      produtos: PRODUTOS_PADRAO,
+      produtos: produtosSelecionados,
       rcfv_lmi: RCFV_LMI_PADRAO,
       id_objeto: row._placa_norm || row.placa,
       filial_id: filial.id,
@@ -574,15 +583,64 @@ export default function EmissaoLote() {
         </div>
       </div>
 
-      {/* Produtos fixos */}
+      {/* Seleção de produtos */}
       <Card className="border-blue-100 bg-blue-50">
         <CardContent className="pt-4 pb-4">
-          <p className="text-sm font-semibold text-blue-800 mb-2">Produtos que serão contratados em todas as apólices:</p>
-          <div className="flex flex-wrap gap-2">
-            {["Furto e Roubo", "Colisão Parcial", "Colisão Total", "Incêndio e Fenômenos da Natureza", "RCF-V — LMI R$ 30.000,00"].map(p => (
-              <Badge key={p} className="bg-blue-600 text-white text-xs">{p}</Badge>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-blue-800">Selecione os produtos que serão contratados em todas as apólices:</p>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-blue-700 hover:bg-blue-100"
+                onClick={() => setProdutosSelecionados([...PRODUTOS_PADRAO])}
+              >
+                Marcar todos
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs text-blue-700 hover:bg-blue-100"
+                onClick={() => setProdutosSelecionados([])}
+              >
+                Limpar
+              </Button>
+            </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {PRODUTOS_OPCOES.map(p => {
+              const checked = produtosSelecionados.includes(p.value);
+              return (
+                <label
+                  key={p.value}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-2 cursor-pointer transition-all ${
+                    checked
+                      ? "border-blue-500 bg-white shadow-sm"
+                      : "border-slate-200 bg-white/60 hover:border-blue-300"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setProdutosSelecionados(prev => [...prev, p.value]);
+                      } else {
+                        setProdutosSelecionados(prev => prev.filter(v => v !== p.value));
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className={`text-sm font-medium ${checked ? "text-blue-800" : "text-slate-600"}`}>
+                    {p.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          {produtosSelecionados.length === 0 && (
+            <p className="text-xs text-red-600 mt-2 font-medium">⚠ Selecione pelo menos um produto para emitir as apólices.</p>
+          )}
         </CardContent>
       </Card>
 
@@ -698,7 +756,7 @@ export default function EmissaoLote() {
             {!rodando ? (
               <Button
                 onClick={iniciarEmissao}
-                disabled={pendentes === 0 || !filialSelecionada}
+                disabled={pendentes === 0 || !filialSelecionada || produtosSelecionados.length === 0}
                 className={`gap-2 ${filialSelecionada ? "bg-green-600 hover:bg-green-700" : "bg-slate-300 cursor-not-allowed"}`}
               >
                 <Play className="w-4 h-4" />
