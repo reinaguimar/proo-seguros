@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, PlusCircle, Download, EyeOff } from "lucide-react";
+import { Search, PlusCircle, Download, EyeOff, Trash2, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { startOfMonth, endOfMonth, format } from "date-fns";
@@ -21,6 +21,15 @@ import {
 
 import PoliciesTable from "../components/apolices/PoliciesTable";
 import PeriodFilter from "../components/dashboard/PeriodFilter";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Apolices() {
   const { pode, user: currentUser, loading: loadingPermissions } = usePermissoes();
@@ -34,8 +43,56 @@ export default function Apolices() {
   const [filtroMovimentacao, setFiltroMovimentacao] = useState("todas");
   const [quickFilter, setQuickFilter] = useState("todas");
   const [mostrarCanceladas, setMostrarCanceladas] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [batchDeleteDialog, setBatchDeleteDialog] = useState({ open: false, motivo: '', loading: false });
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [error, setError] = useState(null);
 
-  const filiaisPermitidas = currentUser?.filiais_permitidas || [];
+  const isSuperAdmin = currentUser?.perfil === 'super_administrador' || currentUser?.perfil_sistema === 'super_administrador';
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = (checked) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredApolices.map(a => a.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleBatchDelete = async () => {
+    if (!batchDeleteDialog.motivo.trim()) return;
+    setBatchDeleteDialog(prev => ({ ...prev, loading: true }));
+    try {
+      const response = await base44.functions.invoke('deletarApolicesLote', {
+        ids_apolices: Array.from(selectedIds),
+        motivo: batchDeleteDialog.motivo.trim()
+      });
+      if (response.data?.sucesso) {
+        const { total_deletadas, total_falhas } = response.data;
+        setSuccessMessage(`${total_deletadas} apólice(s) deletada(s)${total_falhas > 0 ? `, ${total_falhas} falha(s)` : ''}.`);
+        clearSelection();
+        setBatchDeleteDialog({ open: false, motivo: '', loading: false });
+        await loadApolices();
+        setTimeout(() => setSuccessMessage(null), 5000);
+      } else {
+        setError('Erro ao deletar em lote: ' + (response.data?.erro || 'desconhecido'));
+        setBatchDeleteDialog(prev => ({ ...prev, loading: false }));
+      }
+    } catch (err) {
+      setError('Erro ao deletar em lote: ' + (err?.message || 'desconhecido'));
+      setBatchDeleteDialog(prev => ({ ...prev, loading: false }));
+    }
+  };
   const isGlobal = filiaisPermitidas.length === 0;
   const isUmaFilial = filiaisPermitidas.length === 1;
   const showSeletor = isGlobal || filiaisPermitidas.length >= 2;
@@ -398,14 +455,86 @@ export default function Apolices() {
 
         <p className="text-xs text-slate-500">Exibindo {filteredApolices.length} apólices</p>
 
+        {/* Barra de ações em lote */}
+        {isSuperAdmin && selectedIds.size > 0 && (
+          <div className="sticky top-20 z-20 flex items-center justify-between gap-4 bg-blue-600 text-white rounded-xl shadow-lg px-5 py-3">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold">
+                {selectedIds.size} apólice(s) selecionada(s)
+              </span>
+              <button onClick={clearSelection} className="text-white/80 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <Button
+              variant="destructive"
+              onClick={() => setBatchDeleteDialog({ open: true, motivo: '', loading: false })}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir em Lote
+            </Button>
+          </div>
+        )}
+
+        {/* Mensagens de feedback */}
+        {successMessage && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm">
+            {successMessage}
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
-          <PoliciesTable 
+          <PoliciesTable
             apolices={filteredApolices}
             isLoading={isLoading}
             onRefresh={loadApolices}
+            selectedIds={isSuperAdmin ? selectedIds : undefined}
+            onToggleSelect={isSuperAdmin ? toggleSelect : undefined}
+            onSelectAll={isSuperAdmin ? selectAll : undefined}
           />
         </div>
+
+        {/* Dialog de confirmação de exclusão em lote */}
+        <Dialog open={batchDeleteDialog.open} onOpenChange={(open) => !open && setBatchDeleteDialog({ open: false, motivo: '', loading: false })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Excluir {selectedIds.size} apólice(s) em lote</DialogTitle>
+              <DialogDescription>
+                Esta ação é <strong className="text-red-600">IRREVERSÍVEL</strong>. As apólices serão deletadas permanentemente do banco de dados.
+                Uma trilha de auditoria será registrada com seu usuário.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 py-2">
+              <Label htmlFor="motivo-lote">Motivo da exclusão (obrigatório)</Label>
+              <Textarea
+                id="motivo-lote"
+                placeholder="Descreva o motivo da exclusão em lote..."
+                value={batchDeleteDialog.motivo}
+                onChange={(e) => setBatchDeleteDialog(prev => ({ ...prev, motivo: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setBatchDeleteDialog({ open: false, motivo: '', loading: false })}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleBatchDelete}
+                disabled={!batchDeleteDialog.motivo.trim() || batchDeleteDialog.loading}
+              >
+                {batchDeleteDialog.loading ? 'Excluindo...' : `Excluir ${selectedIds.size} apólice(s)`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

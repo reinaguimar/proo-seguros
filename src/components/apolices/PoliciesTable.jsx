@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FileText, Users, Edit, XCircle, Eye, RefreshCw, ArrowRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -62,10 +63,13 @@ const isElegivelRenovacao = (apolice) => {
   );
 };
 
-export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
+export default function PoliciesTable({ apolices, isLoading, onRefresh, selectedIds, onToggleSelect, onSelectAll }) {
   const { user } = usePermissoes();
   const isSuperAdmin = user?.perfil === 'super_administrador';
   const exibirCPFCNPJ = (valor) => isSuperAdmin ? formatCPFCNPJ(valor) : maskPII(valor);
+  const hasSelection = !!onToggleSelect;
+  const allSelected = hasSelection && apolices.length > 0 && apolices.every(a => selectedIds?.has(a.id));
+  const someSelected = hasSelection && apolices.some(a => selectedIds?.has(a.id));
 
   if (isLoading) {
     return (
@@ -104,6 +108,15 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
       <Table className="text-sm">
         <TableHeader>
           <TableRow className="bg-slate-100/70 border-b border-slate-200">
+            {hasSelection && (
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected || (someSelected && "indeterminate")}
+                  onCheckedChange={(checked) => onSelectAll(checked === true)}
+                  aria-label="Selecionar todas"
+                />
+              </TableHead>
+            )}
             <TableHead className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-600 w-48">
               Número da Apólice
             </TableHead>
@@ -143,7 +156,16 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh }) {
           {apolices.map((apolice) => {
             const isCancelada = apolice.status === 'cancelada';
             return (
-            <TableRow key={apolice.id} className={`hover:bg-slate-50/80 transition-colors border-b border-slate-200/70 h-16 ${isCancelada ? 'opacity-50' : ''}`}>
+            <TableRow key={apolice.id} className={`hover:bg-slate-50/80 transition-colors border-b border-slate-200/70 h-16 ${isCancelada ? 'opacity-50' : ''} ${selectedIds?.has(apolice.id) ? 'bg-blue-50/60' : ''}`}>
+              {hasSelection && (
+                <TableCell className="py-3">
+                  <Checkbox
+                    checked={selectedIds?.has(apolice.id) || false}
+                    onCheckedChange={() => onToggleSelect(apolice.id)}
+                    aria-label={`Selecionar apólice ${apolice.numero_apolice}`}
+                  />
+                </TableCell>
+              )}
               <TableCell className="py-3">
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-2">
