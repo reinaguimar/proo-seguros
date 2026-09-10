@@ -44,7 +44,13 @@ const PRODUTOS_OPCOES = [
   { value: "COL_PARCIAL", label: "Colisão Parcial" },
   { value: "COL_TOTAL", label: "Colisão Total" },
   { value: "INCENDIO", label: "Incêndio e Fenômenos da Natureza" },
-  { value: "RCFV", label: "RCF-V — LMI R$ 30.000,00" },
+  { value: "RCFV", label: "RCF-V" },
+];
+
+const RCFV_LMI_OPCOES = [
+  { value: 30000, label: "R$ 30.000,00" },
+  { value: 50000, label: "R$ 50.000,00" },
+  { value: 100000, label: "R$ 100.000,00" },
 ];
 
 const COBERTURAS_FIXAS = [
@@ -285,6 +291,7 @@ export default function EmissaoLote() {
   const [progresso, setProgresso] = useState(0);
   const [carregandoApolices, setCarregandoApolices] = useState(false);
   const [produtosSelecionados, setProdutosSelecionados] = useState([...PRODUTOS_PADRAO]);
+  const [rcfvLmiSelecionado, setRcfvLmiSelecionado] = useState(30000);
   const fileRef = useRef();
   const pauseRef = useRef(false);
 
@@ -405,10 +412,10 @@ export default function EmissaoLote() {
     }
 
     const rcfvPrecoLote = (() => {
-      const v = filial?.["rcfv_preco_" + RCFV_LMI_PADRAO];
+      const v = filial?.["rcfv_preco_" + rcfvLmiSelecionado];
       return (v === undefined || v === null || v === "") ? 35.90 : Number(v);
     })();
-    const coberturas = calcularCoberturas(row.premio_bruto, row.lmi_geral, RCFV_LMI_PADRAO, rcfvPrecoLote, produtosSelecionados);
+    const coberturas = calcularCoberturas(row.premio_bruto, row.lmi_geral, rcfvLmiSelecionado, rcfvPrecoLote, produtosSelecionados);
     const iof_total = Math.round(row.premio_bruto * CONFIG.aliquota_iof * 100) / 100;
     const corretagem = Math.round(row.premio_bruto * CONFIG.percentual_corretagem * 100) / 100;
 
@@ -429,7 +436,7 @@ export default function EmissaoLote() {
       lmi_geral: row.lmi_geral,
       premio_bruto_total: row.premio_bruto,
       produtos: produtosSelecionados,
-      rcfv_lmi: RCFV_LMI_PADRAO,
+      rcfv_lmi: rcfvLmiSelecionado,
       id_objeto: row._placa_norm || row.placa,
       filial_id: filial.id,
       filial_codigo_susep: filial.codigo_susep,
@@ -640,6 +647,27 @@ export default function EmissaoLote() {
           </div>
           {produtosSelecionados.length === 0 && (
             <p className="text-xs text-red-600 mt-2 font-medium">⚠ Selecione pelo menos um produto para emitir as apólices.</p>
+          )}
+
+          {produtosSelecionados.includes("RCFV") && (
+            <div className="mt-3 pt-3 border-t border-blue-200">
+              <p className="text-sm font-semibold text-blue-800 mb-2">LMI do RCF-V:</p>
+              <div className="flex flex-wrap gap-2">
+                {RCFV_LMI_OPCOES.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setRcfvLmiSelecionado(opt.value)}
+                    className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                      rcfvLmiSelecionado === opt.value
+                        ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-400"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
