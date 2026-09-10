@@ -48,6 +48,7 @@ export default function Apolices() {
   const [successMessage, setSuccessMessage] = useState(null);
   const [error, setError] = useState(null);
 
+  const filiaisPermitidas = currentUser?.filiais_permitidas || [];
   const isSuperAdmin = currentUser?.perfil === 'super_administrador' || currentUser?.perfil_sistema === 'super_administrador';
 
   const toggleSelect = (id) => {
