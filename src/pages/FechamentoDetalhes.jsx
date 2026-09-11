@@ -186,7 +186,19 @@ export default function FechamentoDetalhes() {
   const handleExportBorderoPDF = async () => {
     setIsExportingBordero(true);
     try {
-      await generateBorderoPDF(fechamento);
+      // Representante (MGA) = matriz cadastrada no sistema (nao usar dados fixos)
+      let repNome = fechamento.filial_nome || "";
+      let repCnpj = "";
+      try {
+        const _ms = await base44.entities.Filial.filter({ tipo: "matriz" });
+        const _m = (_ms && _ms[0]) || null;
+        if (_m) {
+          repNome = _m.nome || repNome;
+          const _d = String(_m.cnpj || "").replace(/\D/g, "");
+          repCnpj = _d.length === 14 ? _d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : (_m.cnpj || "");
+        }
+      } catch (e) { /* fallback abaixo */ }
+      await generateBorderoPDF({ ...fechamento, representante_nome: repNome, representante_cnpj: repCnpj });
     } catch (err) {
       alert('Erro ao gerar PDF: ' + (err.message || 'Falha ao carregar componentes do PDF. Verifique sua conexão.'));
     } finally {
