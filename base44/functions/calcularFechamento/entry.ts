@@ -103,15 +103,20 @@ Deno.serve(async (req) => {
     // 5. Remuneração MGA
     const comissao_fixa = premio_emitido_bruto * (percentual_comissao_mga / 100);
     // 6. Retenção MGA = prêmio bruto - remuneração seguradora (sem deduzir sinistros aqui)
-    const retencao_mga = premio_emitido_bruto - remuneracao_seguradora;
-    // 5.2 - Lucro operacional = retenção - comissão fixa - sinistros pagos
-    const lucro_operacional = retencao_mga - comissao_fixa - sinistros_pagos;
-    // 5.4 = 5.1 + 5.2
+    const retencao_mga_bruto = premio_emitido_bruto - remuneracao_seguradora;
+    // 5.2 - Lucro operacional (profit sharing) = retenção - comissão fixa - sinistros pagos
+    const lucro_operacional_bruto = retencao_mga_bruto - comissao_fixa - sinistros_pagos;
+
+    // REGRA: valores faturáveis NUNCA podem ser negativos (não é possível emitir nota fiscal negativa).
+    // Profit sharing negativo é zerado; a comissão fixa (positiva) permanece faturável.
+    const lucro_operacional = Math.max(0, lucro_operacional_bruto);
+    const retencao_mga = Math.max(0, retencao_mga_bruto);
+    // 5.4 = 5.1 + 5.2 (já não-negativo)
     const remuneracao_mga = comissao_fixa + lucro_operacional;
     
-    // 6. Saldo Técnico
+    // 6. Saldo Técnico (usa a remuneração MGA já faturável)
     const saldo_tecnico = premio_arrecadado_liquido - sinistros_pagos - remuneracao_seguradora - remuneracao_mga;
-    const repasse_seguradora = remuneracao_seguradora + (saldo_tecnico > 0 ? saldo_tecnico : 0);
+    const repasse_seguradora = Math.max(0, remuneracao_seguradora + (saldo_tecnico > 0 ? saldo_tecnico : 0));
 
     // 7. Capital de Risco (CR) - janela 2 meses (mês atual + 1 anterior fechado)
     // CR = 1.12 × √[(0.17 × Σprêmios_2m)² + (0.44 × Σsinistros_2m)²]
