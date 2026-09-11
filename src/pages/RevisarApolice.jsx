@@ -133,9 +133,11 @@ export default function RevisarApolice() {
       if (isSelected) {
         valor_maximo = cobertura.produto === "RCFV" ? rcfvLmi : lmi_geral;
         if (produtoUnico) {
-          if (pctTotalProdutoUnico > 0) {
-            premio_bruto = Math.round(premio_bruto * 0 + (premio_bruto_distribuivel + (temRCFV ? rcfvPreco : 0)) * 0 + ( (produtos.length===1) ? ( (premio_bruto_original(cobertura)) ) : 0) );
-          }
+          const totalPlano = premio_bruto_distribuivel + (temRCFV ? rcfvPreco : 0);
+          const nCob = COBERTURAS_FIXAS.filter(c => c.produto === produtoUnico).length || 1;
+          premio_bruto = pctTotalProdutoUnico > 0
+            ? Math.round(totalPlano * (cobertura.percentual / pctTotalProdutoUnico) * 100) / 100
+            : Math.round((totalPlano / nCob) * 100) / 100;
         } else if (cobertura.produto === "RCFV") {
           premio_bruto = rcfvPreco;
         } else if (percentual_total_selecionado > 0) {
