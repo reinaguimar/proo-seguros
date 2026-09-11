@@ -115,6 +115,12 @@ export default function RevisarApolice() {
       premio_bruto_distribuivel -= rcfvPreco;
     }
 
+    // Plano de PRODUTO UNICO: 100% do premio vai para o unico produto, sem preco fixo e sem rateio entre produtos.
+    const produtoUnico = (produtos || []).length === 1 ? produtos[0] : null;
+    const pctTotalProdutoUnico = produtoUnico
+      ? COBERTURAS_FIXAS.filter(c => c.produto === produtoUnico).reduce((s, c) => s + c.percentual, 0)
+      : 0;
+
     const produtosSelecionados = COBERTURAS_FIXAS.filter(c => produtos.includes(c.produto));
     const percentual_total_selecionado = produtosSelecionados
       .filter(c => c.produto !== "RCFV")
@@ -126,7 +132,11 @@ export default function RevisarApolice() {
       const isSelected = produtos.includes(cobertura.produto);
       if (isSelected) {
         valor_maximo = cobertura.produto === "RCFV" ? rcfvLmi : lmi_geral;
-        if (cobertura.produto === "RCFV") {
+        if (produtoUnico) {
+          if (pctTotalProdutoUnico > 0) {
+            premio_bruto = Math.round(premio_bruto * 0 + (premio_bruto_distribuivel + (temRCFV ? rcfvPreco : 0)) * 0 + ( (produtos.length===1) ? ( (premio_bruto_original(cobertura)) ) : 0) );
+          }
+        } else if (cobertura.produto === "RCFV") {
           premio_bruto = rcfvPreco;
         } else if (percentual_total_selecionado > 0) {
           const percentual_relativo = cobertura.percentual / percentual_total_selecionado;
