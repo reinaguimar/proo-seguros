@@ -155,7 +155,14 @@ export default function NovaApolice() {
     const valorFixoRcfv = temRCFV ? precoRcfv(data.rcfv_lmi || 100000) : 0;
     const premio_distribuivel = Math.round((data.premio_bruto - valorFixoRcfv) * 100) / 100;
 
-    // Percentual apenas dos produtos NÃO-RCFV selecionados (RCFV sai do rateio)
+    // Plano de PRODUTO UNICO: 100% do premio digitado vai para o unico produto selecionado,
+    // sem preco fixo e sem rateio entre produtos (o valor cobrado responde ao plano).
+    const produtoUnico = (data.produtos || []).length === 1 ? data.produtos[0] : null;
+    const pctTotalProdutoUnico = produtoUnico
+      ? COBERTURAS_FIXAS.filter(c => c.produto === produtoUnico).reduce((s, c) => s + c.percentual, 0)
+      : 0;
+
+    // Percentual apenas dos produtos NÃO-RCFV selecionados (RCFV sai do rateio) — plano combinado
     const percentual_total_selecionado = COBERTURAS_FIXAS
       .filter(c => c.produto !== "RCFV" && data.produtos.includes(c.produto))
       .reduce((sum, c) => sum + c.percentual, 0);
@@ -167,15 +174,17 @@ export default function NovaApolice() {
       const isSelected = data.produtos.includes(cobertura.produto);
 
       if (isSelected) {
-        if (cobertura.produto === "RCFV") {
-          valor_maximo = data.rcfv_lmi || 100000;
-          premio_bruto = valorFixoRcfv;
-        } else {
-          valor_maximo = data.lmi_geral;
-          if (percentual_total_selecionado > 0) {
-            const percentual_relativo = cobertura.percentual / percentual_total_selecionado;
-            premio_bruto = Math.round(premio_distribuivel * percentual_relativo * 100) / 100;
+        valor_maximo = cobertura.produto === "RCFV" ? (data.rcfv_lmi || 100000) : data.lmi_geral;
+        if (produtoUnico) {
+          // Produto unico: distribui o premio total apenas entre as coberturas deste produto
+          if (pctTotalProdutoUnico > 0) {
+            premio_bruto = Math.round(data.premio_bruto * (cobertura.percentual / pctTotalProdutoUnico) * 100) / 100;
           }
+        } else if (cobertura.produto === "RCFV") {
+          premio_bruto = valorFixoRcfv;
+        } else if (percentual_total_selecionado > 0) {
+          const percentual_relativo = cobertura.percentual / percentual_total_selecionado;
+          premio_bruto = Math.round(premio_distribuivel * percentual_relativo * 100) / 100;
         }
       }
       
