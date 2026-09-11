@@ -120,7 +120,11 @@ export default function Step3Produtos({ formData, onInputChange, COBERTURAS_FIXA
                 </Label>
                 {produto.value === 'RCFV' && (
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-green-600">Prêmio Fixo: R$ {fmtBRL(precoDoLmi(rcfvLmi))}</div>
+                    {(formData.produtos || []).length > 1 ? (
+                      <div className="text-sm font-semibold text-green-600">Prêmio Fixo: R$ {fmtBRL(precoDoLmi(rcfvLmi))}</div>
+                    ) : (
+                      <div className="text-xs text-slate-500">Prêmio conforme valor informado</div>
+                    )}
                   </div>
                 )}
               </div>
