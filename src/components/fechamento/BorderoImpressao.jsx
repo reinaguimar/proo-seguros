@@ -89,8 +89,8 @@ export default function BorderoImpressao({ fechamento }) {
         <Section title="5. APURAÇÃO DA REMUNERAÇÃO DO REPRESENTANTE (MGA)">
           <Table rows={[
             { item: '5.1', desc: `Comissão Fixa: (${f.percentual_comissao_mga || 10}% sobre o Prêmio Emitido 2.1).`, val: `R$ ${fmt(f.comissao_fixa_mga)}` },
-            { item: '5.2', desc: 'Lucro Operacional (LO): [Prêmio Arrecadado (2.3)] – [Sinistros Pagos (3.2)] – [Remuneração Seguradora (4.3)].', val: `R$ ${fmt(f.lucro_operacional)}` },
-            { item: '5.3', desc: 'Remuneração Total do Representante: (Comissão 5.1 + Lucro Operacional 5.2).', val: `R$ ${fmt(f.remuneracao_total_mga)}`, highlight: true },
+            { item: '5.2', desc: 'Lucro Operacional (LO): [Prêmio Arrecadado (2.3)] – [Sinistros Pagos (3.2)] – [Remuneração Seguradora (4.3)].', val: `R$ ${fmt(Math.max(0, f.lucro_operacional || 0))}` },
+            { item: '5.3', desc: 'Remuneração Total do Representante: (Comissão 5.1 + Lucro Operacional 5.2).', val: `R$ ${fmt(Math.max(0, f.remuneracao_total_mga || 0))}`, highlight: true },
           ]} />
         </Section>
 
@@ -132,12 +132,12 @@ export default function BorderoImpressao({ fechamento }) {
 
           <div style={{ marginBottom: '6px', fontWeight: '600', fontSize: '11px' }}>6.2 Repasse Final para a SEGURADORA</div>
           <Table rows={[
-            { item: '6.2', desc: 'Remuneração da Seguradora (4.3) + Saldo Técnico (6.1, se positivo e for da seguradora):', val: `R$ ${fmt(f.repasse_seguradora)}`, highlight: true },
+            { item: '6.2', desc: 'Remuneração da Seguradora (4.3) + Saldo Técnico (6.1, se positivo e for da seguradora):', val: `R$ ${fmt(Math.max(0, f.repasse_seguradora || 0))}`, highlight: true },
           ]} />
 
           <div style={{ marginBottom: '6px', fontWeight: '600', fontSize: '11px', marginTop: '8px' }}>6.3 Retenção pelo REPRESENTANTE</div>
           <Table rows={[
-            { item: '6.3', desc: 'O Representante retém o valor de sua remuneração (5.4) via compensação direta.', val: `R$ ${fmt(f.retencao_mga)}`, highlight: true },
+            { item: '6.3', desc: 'O Representante retém o valor de sua remuneração (5.4) via compensação direta.', val: `R$ ${fmt(Math.max(0, f.retencao_mga || 0))}`, highlight: true },
           ]} />
         </Section>
 
