@@ -1,14 +1,34 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 
 const MESES = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 const fmt = (v) => (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+// Formata CNPJ (14 digitos) como XX.XXX.XXX/XXXX-XX; caso contrario devolve original.
+const fmtCnpj = (v) => {
+  const d = String(v || "").replace(/\D/g, "");
+  if (d.length === 14) return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  return v || "";
+};
+
 export default function BorderoImpressao({ fechamento }) {
+  const [matriz, setMatriz] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    base44.entities.Filial.filter({ tipo: "matriz" })
+      .then((ms) => { if (alive) setMatriz((ms && ms[0]) || null); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
   if (!fechamento) return null;
 
   const f = fechamento;
+  const repNome = matriz?.nome || f.filial_nome || "—";
+  const repCnpj = matriz?.cnpj ? fmtCnpj(matriz.cnpj) : "—";
 
   return (
     <div style={{
@@ -51,8 +71,8 @@ export default function BorderoImpressao({ fechamento }) {
             <Row label="SEGURADORA:" value="OON SEGURADORA S.A" bold />
             <Row label="CNPJ:" value="43.249.519/0001-10" />
             <div style={{ height: '8px' }} />
-            <Row label="REPRESENTANTE (MGA):" value="NEW SOLUÇÕES LTDA - ME" bold />
-            <Row label="CNPJ:" value="13.995.255/0001-83" />
+            <Row label="REPRESENTANTE (MGA):" value={repNome} bold />
+            <Row label="CNPJ:" value={repCnpj} />
           </div>
         </Section>
 
