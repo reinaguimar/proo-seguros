@@ -52,7 +52,9 @@ function gerarBordero(record) {
   var H20 = Math.abs(H7) * 0.20;
   var H21 = H17 + H20;
   var H22 = H6 * 0.1038;
-  var H23 = (H7 === 0) ? H22 : Math.max(H21, H22);
+  // Remuneracao da Seguradora = MAIOR entre R$ 5.000 (piso, Clausula 3.3), 10,38% e (IOF + 20% sinistros).
+  // Usa o valor ja apurado no fechamento; fallback recalcula com o piso de R$ 5.000.
+  var H23 = parseFloat(record.remuneracao_aplicada_seguradora) || Math.max(5000, H22, H21);
   var H26 = H6 * 0.10;
   var H29 = H8 - H23 - H26;
   var H35 = Math.max(0, H34 - H33);
