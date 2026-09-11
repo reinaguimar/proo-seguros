@@ -36,7 +36,7 @@ function gerarBordero(record) {
 
   var CNPJ_OON  = '43.249.519/0001-10';
   var SUSEP_NUM = '15414.627418/2021-15';
-  var CNPJ_MGA  = '13.995.255/0001-83';
+  var CNPJ_MGA  = record.representante_cnpj || '';
 
   // ── DADOS DO BANCO ────────────────────────────────────────────────────────
   var H6  = parseFloat(record.premio_emitido_bruto)  || 0;
@@ -44,7 +44,7 @@ function gerarBordero(record) {
   var H17 = parseFloat(record.iof_total_mes)          || 0;
   var H33 = parseFloat(record.cr_capital_aportado)    || 0;
   var H34 = parseFloat(record.cr_necessidade_capital) || 0;
-  var filialNome = record.filial_nome || 'NEW SOLUÇÕES LTDA - ME';
+  var filialNome = record.representante_nome || record.filial_nome || '';
 
   // ── FÓRMULAS (H29 calculado do zero — NUNCA usa record.lucro_operacional) ──
   var H8  = H6 + H7;
