@@ -114,7 +114,7 @@ export default function RenovarApolice() {
   };
 
   const calculateDerivatives = async (data) => {
-    const startDate = new Date(data.data_inicio);
+    const startDate = new Date(data.data_inicio + "T12:00:00");
     const endDate = addDays(startDate, CONFIG.prazo_em_dias);
     
     const { numeroGerado: numero_apolice, novoSequencial, filialId, filialCodigo } = await generatePolicyNumber(

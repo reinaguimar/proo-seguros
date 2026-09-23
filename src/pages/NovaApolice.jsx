@@ -137,9 +137,9 @@ export default function NovaApolice() {
   };
 
   const calculateDerivatives = async (data) => {
-    const startDate = new Date(data.data_inicio);
+    const startDate = new Date(data.data_inicio + "T12:00:00");
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + CONFIG.prazo_em_dias); 
+    endDate.setDate(endDate.getDate() + CONFIG.prazo_em_dias);
     
     const { numeroGerado: numero_apolice, novoSequencial, filialId, filialCodigo } = await generatePolicyNumber(data.id_objeto, data.filial_id, data.filial_codigo_susep);
     const valor_corretagem_total = Math.round(data.premio_bruto * CONFIG.percentual_corretagem * 100) / 100;
