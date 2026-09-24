@@ -79,6 +79,25 @@ const parseDate = (str) => {
   return `${year}-${month}-${day}`;
 };
 
+const formatDateBR = (str) => {
+  if (!str) return "—";
+  const [y, m, d] = str.split("T")[0].split("-");
+  if (!y || !m || !d) return str;
+  return `${d}/${m}/${y}`;
+};
+
+const calcFimVigencia = (inicioStr) => {
+  if (!inicioStr) return "—";
+  const [y, m, d] = inicioStr.split("T")[0].split("-").map(Number);
+  if (!y || !m || !d) return "—";
+  const dt = new Date(y, m - 1, d, 12, 0, 0, 0);
+  dt.setDate(dt.getDate() + CONFIG.prazo_em_dias);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
+  return `${dd}/${mm}/${yy}`;
+};
+
 const cleanDoc = (str) => {
   if (!str) return "";
   const digits = str.replace(/[^\d]/g, "");
@@ -815,6 +834,8 @@ export default function EmissaoLote() {
                     <th className="px-3 py-2 font-semibold text-slate-600">Tipo</th>
                     <th className="px-3 py-2 font-semibold text-slate-600">CPF Segurado</th>
                     <th className="px-3 py-2 font-semibold text-slate-600">Placa</th>
+                    <th className="px-3 py-2 font-semibold text-slate-600">Início Vig.</th>
+                    <th className="px-3 py-2 font-semibold text-slate-600">Fim Vig.</th>
                     <th className="px-3 py-2 font-semibold text-slate-600">LMI</th>
                     <th className="px-3 py-2 font-semibold text-slate-600">Prêmio Bruto</th>
                     <th className="px-3 py-2 font-semibold text-slate-600">Status</th>
@@ -838,6 +859,8 @@ export default function EmissaoLote() {
                         </td>
                         <td className="px-3 py-2 font-mono text-xs">{row.cpf_segurado}</td>
                         <td className="px-3 py-2 font-mono font-semibold">{row._placa_norm || row.placa || <span className="text-red-400 italic">ausente</span>}</td>
+                        <td className="px-3 py-2 text-xs whitespace-nowrap">{formatDateBR(row.data_inicio)}</td>
+                        <td className="px-3 py-2 text-xs whitespace-nowrap">{calcFimVigencia(row.data_inicio)}</td>
                         <td className="px-3 py-2">{row.lmi_geral.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
                         <td className="px-3 py-2">{row.premio_bruto.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</td>
                         <td className="px-3 py-2">
