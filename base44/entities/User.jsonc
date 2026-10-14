@@ -21,6 +21,11 @@
     "filial_id_padrao": {
       "type": "string",
       "description": "ID da filial padr\u00e3o do usu\u00e1rio, usada como contexto inicial no dashboard e filtros. Deve estar contida em filiais_permitidas quando esse array n\u00e3o for vazio."
+    },
+    "ultimo_acesso": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora do \u00faltimo login do usu\u00e1rio. Atualizado automaticamente pelo workflow Registrar \u00daltimo Acesso."
     }
   },
   "required": [

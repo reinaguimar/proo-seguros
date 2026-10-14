@@ -1,0 +1,39 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "app_user_auth",
+      "events": [
+        "login"
+      ]
+    }
+  },
+  "name": "Registrar \u00daltimo Acesso",
+  "description": "Atualiza o campo ultimo_acesso do usu\u00e1rio a cada login, para exibi\u00e7\u00e3o na Gest\u00e3o de Usu\u00e1rios",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "registrar_ultimo_acesso",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "registrar": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "registrarUltimoAcesso",
+            "args": {
+              "user_id": "${ .trigger.user_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Registrar \u00faltimo acesso",
+            "description": "Atualiza data/hora do login"
+          }
+        }
+      }
+    ]
+  }
+}

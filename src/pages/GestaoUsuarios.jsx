@@ -520,10 +520,10 @@ export default function GestaoUsuarios() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {usuario.last_login ? (
+                        {usuario.ultimo_acesso ? (
                           <div className="flex items-center gap-1 text-sm text-slate-600">
                             <Clock className="w-3 h-3" />
-                            {format(new Date(usuario.last_login), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                            {format(new Date(usuario.ultimo_acesso), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                           </div>
                         ) : (
                           <span className="text-sm text-slate-400">Nunca acessou</span>
