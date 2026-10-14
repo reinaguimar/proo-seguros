@@ -30,7 +30,8 @@ Deno.serve(async (req) => {
     apolicesCompetencia = apolicesCompetencia.filter(a =>
       !a.cancelada_para_revisao &&
       a.natureza_movimento !== 'Cancelamento' &&
-      a.status !== 'cancelada'
+      a.status !== 'cancelada' &&
+      a.excluido_logico !== true
     );
     
     const apolicesMap = new Map();
