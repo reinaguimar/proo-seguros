@@ -388,7 +388,7 @@ export default function ApoliceDetalhes() {
 
       {/* Botoes de acao */}
       <div className="action-buttons no-print">
-        {currentUser?.email === 'reinaldo.aguimar@oonseguradora.com.br' && (
+        {currentUser?.email === 'reinaldo.aguimar@oonseguradora.com' && (
           <button onClick={handleDeletePermanente} className="action-btn" disabled={deleting} style={{ background: '#b91c1c', opacity: deleting ? 0.6 : 1 }}>
             <Trash2 />
             {deleting ? 'Deletando...' : 'Deletar'}
