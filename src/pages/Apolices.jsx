@@ -49,7 +49,7 @@ export default function Apolices() {
   const [error, setError] = useState(null);
 
   const filiaisPermitidas = currentUser?.filiais_permitidas || [];
-  const canDeleteApolices = currentUser?.email === 'reinaldo.aguimar@oonseguradora.com.br';
+  const canDeleteApolices = currentUser?.email === 'reinaldo.aguimar@oonseguradora.com';
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
