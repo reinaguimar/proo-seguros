@@ -107,7 +107,8 @@ export default function Dashboard() {
       base44.entities.FechamentoMensal.list("-competencia_ano", 12).catch(() => []),
     ]);
     const filiaisVisiveis = isGlobal ? filiaisData : filiaisData.filter(f => filiaisPermitidas.includes(f.id));
-    setAllApolices(apolices);
+    // Ocultar apólices com exclusão lógica (soft-delete)
+    setAllApolices(apolices.filter(a => a.excluido_logico !== true));
     setAllSinistros(sinistros);
     setFiliais(filiaisVisiveis);
     setFechamentos(fechamentosData);
