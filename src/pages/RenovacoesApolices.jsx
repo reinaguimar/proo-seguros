@@ -70,7 +70,7 @@ export default function RenovacoesApolices() {
     try {
       setIsLoading(true);
       const data = await base44.entities.Apolice.filter({ natureza_movimento: { $ne: "Cancelamento" } }, "-data_fim_apolice");
-      setApolices(data);
+      setApolices(data.filter(a => a.excluido_logico !== true));
     } catch (error) {
       console.error("Erro ao carregar apólices:", error);
     } finally {
