@@ -50,7 +50,13 @@ Deno.serve(async (req) => {
                 const apolice = apoliceArr[0];
                 const backup = JSON.parse(JSON.stringify(apolice));
 
-                await base44.asServiceRole.entities.Apolice.delete(id_apolice);
+                // SOFT-DELETE: nunca remove fisicamente — marca como excluída (reversível).
+                await base44.asServiceRole.entities.Apolice.update(id_apolice, {
+                    excluido_logico: true,
+                    excluido_em: new Date().toISOString(),
+                    excluido_por: user.email,
+                    excluido_motivo: motivo.trim()
+                });
 
                 // Acumular decremento por filial
                 if (apolice.filial_id) {
@@ -68,7 +74,7 @@ Deno.serve(async (req) => {
                     usuario_id: user.id,
                     usuario_email: user.email,
                     usuario_nome: user.full_name || user.email,
-                    motivo_delecao: `Exclusão em lote: ${motivo.trim()}`,
+                    motivo_delecao: `Exclusão lógica em lote (reversível): ${motivo.trim()}`,
                     data_delecao: new Date().toISOString(),
                     dados_backup: backup
                 });
