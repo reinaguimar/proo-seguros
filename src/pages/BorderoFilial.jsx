@@ -100,6 +100,7 @@ export default function BorderoFilial() {
         const fim = new Date(ano, mes, 0); // último dia do mês
         const apolices = todasApolices.filter(a => {
           if (!a.data_inicio_apolice) return false;
+          if (a.excluido_logico === true) return false;
           const d = new Date(a.data_inicio_apolice);
           return d >= inicio && d <= fim;
         });
