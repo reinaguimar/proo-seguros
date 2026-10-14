@@ -41,8 +41,14 @@ Deno.serve(async (req) => {
         // Backup dos dados para trilha de auditoria
         const backup = JSON.parse(JSON.stringify(apolice[0]));
 
-        // Deletar permanentemente do banco de dados
-        await base44.asServiceRole.entities.Apolice.delete(id_apolice);
+        // SOFT-DELETE: nunca remove fisicamente do banco — marca como excluída (reversível).
+        // O registro permanece no banco com excluido_logico=true e é ocultado das listas/relatórios.
+        await base44.asServiceRole.entities.Apolice.update(id_apolice, {
+            excluido_logico: true,
+            excluido_em: new Date().toISOString(),
+            excluido_por: user.email,
+            excluido_motivo: motivo.trim()
+        });
 
         // Decrementar contador da filial
         if (apolice[0].filial_id) {
@@ -60,16 +66,16 @@ Deno.serve(async (req) => {
             usuario_id: user.id,
             usuario_email: user.email,
             usuario_nome: user.full_name || user.email,
-            motivo_delecao: motivo.trim(),
+            motivo_delecao: `Exclusão lógica (reversível): ${motivo.trim()}`,
             data_delecao: new Date().toISOString(),
             dados_backup: backup
         });
 
-        console.log(`✅ Apólice ${apolice[0].numero_apolice} deletada permanentemente por ${user.email}. Motivo: ${motivo}`);
+        console.log(`✅ Apólice ${apolice[0].numero_apolice} marcada como excluída (soft-delete) por ${user.email}. Motivo: ${motivo}`);
 
         return Response.json({ 
             sucesso: true, 
-            mensagem: `Apólice ${apolice[0].numero_apolice} deletada permanentemente do banco de dados` 
+            mensagem: `Apólice ${apolice[0].numero_apolice} excluída (exclusão lógica reversível — registro preservado no banco)` 
         });
 
     } catch (error) {
