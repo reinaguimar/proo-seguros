@@ -57,5 +57,12 @@
   "required": [
     "sinistro_id",
     "acao"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
