@@ -58,5 +58,12 @@
     "usuario_id",
     "hash_documento",
     "hash_assinatura"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
