@@ -55,5 +55,12 @@
     "fechamento_id",
     "acao",
     "usuario_id"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
