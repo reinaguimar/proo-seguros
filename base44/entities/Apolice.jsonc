@@ -223,6 +223,24 @@
     },
     "cobertura_6_premio_retido": {
       "type": "number"
+    },
+    "excluido_logico": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft-delete: se true, a ap\u00f3lice foi exclu\u00edda logicamente \u2014 permanece no banco e \u00e9 ocultada de listas/relat\u00f3rios. Nunca \u00e9 removida fisicamente."
+    },
+    "excluido_em": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora da exclus\u00e3o l\u00f3gica"
+    },
+    "excluido_por": {
+      "type": "string",
+      "description": "E-mail de quem executou a exclus\u00e3o l\u00f3gica"
+    },
+    "excluido_motivo": {
+      "type": "string",
+      "description": "Motivo informado na exclus\u00e3o l\u00f3gica"
     }
   },
   "required": [
@@ -233,5 +251,12 @@
     "lmi_geral",
     "premio_bruto_total",
     "id_objeto"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
