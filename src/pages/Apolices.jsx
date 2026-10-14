@@ -246,9 +246,11 @@ export default function Apolices() {
       setIsLoading(true);
       console.log("🔄 Carregando apólices...");
       const data = await base44.entities.Apolice.filter({ natureza_movimento: { $ne: "Cancelamento" } });
-      console.log("✅ Apólices carregadas:", data.length);
+      // Ocultar apólices com exclusão lógica (soft-delete) de qualquer visualização
+      const visiveis = data.filter(a => a.excluido_logico !== true);
+      console.log("✅ Apólices carregadas:", visiveis.length);
       // Separar canceladas — exibidas apenas se toggle ativo
-      setApolices(data);
+      setApolices(visiveis);
     } catch (error) {
       console.error("❌ Erro ao carregar apólices");
       console.error("Tipo:", error.constructor.name);
