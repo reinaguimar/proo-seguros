@@ -69,5 +69,12 @@
     "cpf_segurado",
     "id_apolice",
     "produto_sinistrado"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
