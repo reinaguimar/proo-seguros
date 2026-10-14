@@ -54,5 +54,12 @@
     "competencia",
     "pdd_competencia_id",
     "numero_versao"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
