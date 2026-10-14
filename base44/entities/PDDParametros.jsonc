@@ -49,5 +49,12 @@
   },
   "required": [
     "nome"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
