@@ -117,5 +117,12 @@
     "tipo_gasto",
     "valor_total",
     "forma_pagamento"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
