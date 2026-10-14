@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
         }
 
         // APENAS o usuário autorizado pode deletar apólices permanentemente
-        const EMAIL_AUTORIZADO = 'reinaldo.aguimar@oonseguradora.com.br';
+        const EMAIL_AUTORIZADO = 'reinaldo.aguimar@oonseguradora.com';
         if (user.email !== EMAIL_AUTORIZADO) {
             return Response.json({ 
                 sucesso: false, 
