@@ -121,5 +121,12 @@
     "nome",
     "codigo_susep",
     "codigo_filial"
-  ]
+  ],
+  "rls": {
+    "delete": {
+      "user_condition": {
+        "id": "__no_delete_lock__"
+      }
+    }
+  }
 }
