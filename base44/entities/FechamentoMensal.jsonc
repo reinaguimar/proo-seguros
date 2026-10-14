@@ -185,7 +185,7 @@
     },
     "delete": {
       "user_condition": {
-        "role": "admin"
+        "id": "__no_delete_lock__"
       }
     }
   }
