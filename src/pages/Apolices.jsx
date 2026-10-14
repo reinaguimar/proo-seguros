@@ -49,7 +49,7 @@ export default function Apolices() {
   const [error, setError] = useState(null);
 
   const filiaisPermitidas = currentUser?.filiais_permitidas || [];
-  const isSuperAdmin = currentUser?.perfil === 'super_administrador' || currentUser?.perfil_sistema === 'super_administrador';
+  const canDeleteApolices = currentUser?.email === 'reinaldo.aguimar@oonseguradora.com.br';
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -457,7 +457,7 @@ export default function Apolices() {
         <p className="text-xs text-slate-500">Exibindo {filteredApolices.length} apólices</p>
 
         {/* Barra de ações em lote */}
-        {isSuperAdmin && selectedIds.size > 0 && (
+        {canDeleteApolices && selectedIds.size > 0 && (
           <div className="sticky top-20 z-20 flex items-center justify-between gap-4 bg-blue-600 text-white rounded-xl shadow-lg px-5 py-3">
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold">
@@ -496,9 +496,9 @@ export default function Apolices() {
             apolices={filteredApolices}
             isLoading={isLoading}
             onRefresh={loadApolices}
-            selectedIds={isSuperAdmin ? selectedIds : undefined}
-            onToggleSelect={isSuperAdmin ? toggleSelect : undefined}
-            onSelectAll={isSuperAdmin ? selectAll : undefined}
+            selectedIds={canDeleteApolices ? selectedIds : undefined}
+            onToggleSelect={canDeleteApolices ? toggleSelect : undefined}
+            onSelectAll={canDeleteApolices ? selectAll : undefined}
           />
         </div>
 

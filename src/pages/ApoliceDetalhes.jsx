@@ -226,7 +226,7 @@ const fmtCnpj = (v) => {
 
 export default function ApoliceDetalhes() {
   const navigate = useNavigate();
-  const { isPerfil } = usePermissoes();
+  const { isPerfil, user: currentUser } = usePermissoes();
   const [apolice, setApolice] = useState(null);
   const [filial, setFilial] = useState(null);
   const [matriz, setMatriz] = useState(null);
@@ -306,12 +306,13 @@ export default function ApoliceDetalhes() {
   };
 
   const handleDeletePermanente = async () => {
-    if (!window.confirm('ATENCAO: Esta acao e IRREVERSIVEL!\n\nDeseja deletar permanentemente a apolice ' + apolice.numero_apolice + '?')) return;
+    const motivo = window.prompt('ATENCAO: Esta acao e IRREVERSIVEL!\n\nDeseja deletar permanentemente a apolice ' + apolice.numero_apolice + '?\n\nInforme o motivo da exclusao (obrigatorio):');
+    if (!motivo || !motivo.trim()) return;
     try {
       setDeleting(true);
-      const response = await base44.functions.invoke('deletarApolice', { id_apolice: apolice.id });
+      const response = await base44.functions.invoke('deletarApolice', { id_apolice: apolice.id, motivo: motivo.trim() });
       if (response.data?.sucesso) {
-        alert('Apolice deletada com sucesso.');
+        alert('Apolice deletada com sucesso. Trilha de auditoria registrada.');
         navigate(createPageUrl('Apolices'));
       } else {
         alert('Erro: ' + (response.data?.erro || 'Falha ao deletar'));
@@ -387,7 +388,7 @@ export default function ApoliceDetalhes() {
 
       {/* Botoes de acao */}
       <div className="action-buttons no-print">
-        {isPerfil('super_administrador') && (
+        {currentUser?.email === 'reinaldo.aguimar@oonseguradora.com.br' && (
           <button onClick={handleDeletePermanente} className="action-btn" disabled={deleting} style={{ background: '#b91c1c', opacity: deleting ? 0.6 : 1 }}>
             <Trash2 />
             {deleting ? 'Deletando...' : 'Deletar'}

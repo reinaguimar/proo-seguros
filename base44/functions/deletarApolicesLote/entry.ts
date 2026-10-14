@@ -16,15 +16,12 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
-        // Buscar perfil do usuário
-        const perfis = await base44.asServiceRole.entities.Perfil.filter({ id: user.perfil_id });
-        const perfilNome = perfis.length > 0 ? perfis[0].nome : null;
-
-        // APENAS SUPER ADMINISTRADOR pode deletar permanentemente
-        if (perfilNome !== 'super_administrador') {
+        // APENAS o usuário autorizado pode deletar apólices em lote
+        const EMAIL_AUTORIZADO = 'reinaldo.aguimar@oonseguradora.com.br';
+        if (user.email !== EMAIL_AUTORIZADO) {
             return Response.json({
                 sucesso: false,
-                erro: 'Apenas o Super Administrador pode deletar apólices em lote'
+                erro: 'Acesso negado. Apenas o usuário autorizado pode deletar apólices.'
             }, { status: 403 });
         }
 

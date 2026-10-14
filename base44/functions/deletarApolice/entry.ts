@@ -12,22 +12,23 @@ Deno.serve(async (req) => {
             }, { status: 401 });
         }
 
-        // Buscar perfil do usuário
-        const perfis = await base44.asServiceRole.entities.Perfil.filter({ id: user.perfil_id });
-        const perfilNome = perfis.length > 0 ? perfis[0].nome : null;
-
-        // APENAS SUPER ADMINISTRADOR pode deletar permanentemente
-        if (perfilNome !== 'super_administrador') {
+        // APENAS o usuário autorizado pode deletar apólices permanentemente
+        const EMAIL_AUTORIZADO = 'reinaldo.aguimar@oonseguradora.com.br';
+        if (user.email !== EMAIL_AUTORIZADO) {
             return Response.json({ 
                 sucesso: false, 
-                erro: 'Apenas o Super Administrador pode deletar apólices permanentemente' 
+                erro: 'Acesso negado. Apenas o usuário autorizado pode deletar apólices.' 
             }, { status: 403 });
         }
 
-        const { id_apolice } = await req.json();
+        const { id_apolice, motivo } = await req.json();
 
         if (!id_apolice) {
             return Response.json({ sucesso: false, erro: 'ID da apólice é obrigatório' }, { status: 400 });
+        }
+
+        if (!motivo || !motivo.trim()) {
+            return Response.json({ sucesso: false, erro: 'Motivo da exclusão é obrigatório' }, { status: 400 });
         }
 
         // Buscar a apólice para validação
@@ -36,6 +37,9 @@ Deno.serve(async (req) => {
         if (!apolice || apolice.length === 0) {
             return Response.json({ sucesso: false, erro: 'Apólice não encontrada' }, { status: 404 });
         }
+
+        // Backup dos dados para trilha de auditoria
+        const backup = JSON.parse(JSON.stringify(apolice[0]));
 
         // Deletar permanentemente do banco de dados
         await base44.asServiceRole.entities.Apolice.delete(id_apolice);
@@ -48,7 +52,20 @@ Deno.serve(async (req) => {
             }
         }
 
-        console.log(`✅ Apólice ${apolice[0].numero_apolice} deletada permanentemente pelo Super Admin ${user.email}`);
+        // Registrar trilha de auditoria
+        await base44.asServiceRole.entities.LogDelecao.create({
+            tipo_entidade: 'Apolice',
+            id_registro: id_apolice,
+            id_registro_alternativo: apolice[0].numero_apolice || null,
+            usuario_id: user.id,
+            usuario_email: user.email,
+            usuario_nome: user.full_name || user.email,
+            motivo_delecao: motivo.trim(),
+            data_delecao: new Date().toISOString(),
+            dados_backup: backup
+        });
+
+        console.log(`✅ Apólice ${apolice[0].numero_apolice} deletada permanentemente por ${user.email}. Motivo: ${motivo}`);
 
         return Response.json({ 
             sucesso: true, 
