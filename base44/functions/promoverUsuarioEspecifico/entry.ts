@@ -1,47 +1,13 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// Promover usuário específico a Super Administrador
-// USE APENAS UMA VEZ
-
-Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-
-    const body = await req.json().catch(() => ({}));
-    const EMAIL_ALVO = body.email || 'reinaldo.aguimar@oonseguradora.com';
-    
-    // Buscar todos os usuários
-    const usuarios = await base44.asServiceRole.entities.User.list();
-    const usuario = usuarios.find(u => u.email === EMAIL_ALVO);
-    
-    if (!usuario) {
-      return Response.json({ 
-        error: `Usuário ${EMAIL_ALVO} não encontrado` 
-      }, { status: 404 });
-    }
-    
-    // Promover a super admin
-    await base44.asServiceRole.entities.User.update(usuario.id, {
-      perfil_sistema: 'super_administrador',
-      ativo: true
-    });
-    
-    return Response.json({ 
-      sucesso: true, 
-      mensagem: `Usuário ${usuario.full_name} (${EMAIL_ALVO}) promovido a Super Administrador!`,
-      usuario: {
-        id: usuario.id,
-        nome: usuario.full_name,
-        email: usuario.email,
-        perfil: 'super_administrador'
-      }
-    });
-    
-  } catch (error) {
-    console.error('Erro:', error);
-    return Response.json({ 
-      sucesso: false,
-      error: error.message 
-    }, { status: 500 });
-  }
+// FUNCAO DESATIVADA POR SEGURANCA (P0).
+// Era uma rotina de bootstrap de uso unico SEM autenticacao que permitia promover
+// qualquer e-mail a super_administrador. Mantida apenas como stub que recusa toda chamada,
+// para eliminar a superficie de ataque. Gestao de perfis deve usar 'alterarPerfilUsuario'
+// (que exige administrador). Reative sob demanda apenas com checagem de super_administrador.
+Deno.serve(async (_req) => {
+  return Response.json(
+    { sucesso: false, erro: 'Funcao desativada por seguranca.' },
+    { status: 403 }
+  );
 });
