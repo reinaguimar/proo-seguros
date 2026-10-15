@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // Status de FechamentoMensal que caracterizam fechamento JA REALIZADO.
 // Apolices de competencias com fechamento nesses status nao podem ser excluidas (nem logicamente).
-const STATUS_FECHAMENTO_REALIZADO = ['auditado', 'aprovado_mga', 'aprovado_seguradora', 'fechado'];
+const STATUS_FECHAMENTO_REALIZADO = ['fechado'];
 
 // Retorna uma mensagem de bloqueio se a competencia da apolice tiver fechamento realizado; senao null.
 async function verificarFechamentoRealizado(base44, apolice) {
