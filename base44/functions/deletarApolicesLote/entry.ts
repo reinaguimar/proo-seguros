@@ -4,6 +4,29 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // Apenas super_administrador pode executar. Deleta múltiplas apólices,
 // decrementa contadores das filiais e registra trilha de auditoria.
 
+// Status de FechamentoMensal que caracterizam fechamento JA REALIZADO.
+const STATUS_FECHAMENTO_REALIZADO = ['auditado', 'aprovado_mga', 'aprovado_seguradora', 'fechado'];
+
+// Retorna uma mensagem de bloqueio se a competencia da apolice tiver fechamento realizado; senao null.
+async function verificarFechamentoRealizado(base44, apolice) {
+    const dataRef = apolice?.data_inicio_apolice;
+    if (!dataRef || typeof dataRef !== 'string') return null;
+    const partes = dataRef.split('-');
+    const compAno = parseInt(partes[0], 10);
+    const compMes = parseInt(partes[1], 10);
+    if (!compAno || !compMes) return null;
+    const fechamentos = await base44.asServiceRole.entities.FechamentoMensal.filter({
+        competencia_mes: compMes,
+        competencia_ano: compAno
+    });
+    const realizado = (fechamentos || []).find(f => STATUS_FECHAMENTO_REALIZADO.includes(f.status));
+    if (realizado) {
+        const mm = String(compMes).padStart(2, '0');
+        return `Competência ${mm}/${compAno} com fechamento já realizado (status: ${realizado.status}) — exclusão não permitida.`;
+    }
+    return null;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -48,6 +71,14 @@ Deno.serve(async (req) => {
                 }
 
                 const apolice = apoliceArr[0];
+
+                // TRAVA REGULATÓRIA: não excluir apólice de competência com fechamento já realizado.
+                const bloqueioFechamento = await verificarFechamentoRealizado(base44, apolice);
+                if (bloqueioFechamento) {
+                    falhas.push({ id: id_apolice, numero_apolice: apolice.numero_apolice || null, erro: bloqueioFechamento });
+                    continue;
+                }
+
                 const backup = JSON.parse(JSON.stringify(apolice));
 
                 // SOFT-DELETE: nunca remove fisicamente — marca como excluída (reversível).
