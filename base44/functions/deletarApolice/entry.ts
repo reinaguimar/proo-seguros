@@ -1,5 +1,29 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Status de FechamentoMensal que caracterizam fechamento JA REALIZADO.
+// Apolices de competencias com fechamento nesses status nao podem ser excluidas (nem logicamente).
+const STATUS_FECHAMENTO_REALIZADO = ['auditado', 'aprovado_mga', 'aprovado_seguradora', 'fechado'];
+
+// Retorna uma mensagem de bloqueio se a competencia da apolice tiver fechamento realizado; senao null.
+async function verificarFechamentoRealizado(base44, apolice) {
+    const dataRef = apolice?.data_inicio_apolice;
+    if (!dataRef || typeof dataRef !== 'string') return null;
+    const partes = dataRef.split('-');
+    const compAno = parseInt(partes[0], 10);
+    const compMes = parseInt(partes[1], 10);
+    if (!compAno || !compMes) return null;
+    const fechamentos = await base44.asServiceRole.entities.FechamentoMensal.filter({
+        competencia_mes: compMes,
+        competencia_ano: compAno
+    });
+    const realizado = (fechamentos || []).find(f => STATUS_FECHAMENTO_REALIZADO.includes(f.status));
+    if (realizado) {
+        const mm = String(compMes).padStart(2, '0');
+        return `A apolice ${apolice.numero_apolice || ''} pertence a competencia ${mm}/${compAno}, cujo fechamento ja foi realizado (status: ${realizado.status}). Apolices de competencias com fechamento realizado nao podem ser excluidas.`;
+    }
+    return null;
+}
+
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -36,6 +60,12 @@ Deno.serve(async (req) => {
         
         if (!apolice || apolice.length === 0) {
             return Response.json({ sucesso: false, erro: 'Apólice não encontrada' }, { status: 404 });
+        }
+
+        // TRAVA REGULATÓRIA: apólice de competência com fechamento já realizado NUNCA pode ser excluída.
+        const bloqueioFechamento = await verificarFechamentoRealizado(base44, apolice[0]);
+        if (bloqueioFechamento) {
+            return Response.json({ sucesso: false, erro: bloqueioFechamento }, { status: 409 });
         }
 
         // Backup dos dados para trilha de auditoria
