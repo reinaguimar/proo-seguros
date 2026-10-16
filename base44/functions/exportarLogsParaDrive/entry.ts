@@ -39,12 +39,15 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Rate limit para chamadas manuais (sistema automático não tem user)
+    // SEGURANCA: exige administrador autenticado (removida a execucao anonima, que permitia
+    // disparar uploads com as credenciais Google do app sem login).
     const callerUser = await base44.auth.me().catch(() => null);
-    if (callerUser) {
-      try { checkRateLimit(callerUser.id, 'exportarLogsParaDrive'); } catch (e) {
-        return Response.json({ error: e.message }, { status: 429 });
-      }
+    const __isAdmin = callerUser && (callerUser.role === 'admin' || ['administrador', 'super_administrador'].includes(callerUser.perfil_sistema));
+    if (!__isAdmin) {
+      return Response.json({ error: 'Acesso negado. Apenas administradores podem executar a exportacao.' }, { status: 403 });
+    }
+    try { checkRateLimit(callerUser.id, 'exportarLogsParaDrive'); } catch (e) {
+      return Response.json({ error: e.message }, { status: 429 });
     }
 
     const { data } = await req.json().catch(() => ({}));
