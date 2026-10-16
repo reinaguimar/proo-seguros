@@ -9,7 +9,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    // Qualquer usuário autenticado pode listar — controle de acesso é feito na UI
+    // SEGURANCA: apenas administradores podem listar usuarios (a UI nao e controle de seguranca).
+    const __isAdmin = user.role === 'admin' || ['administrador', 'super_administrador'].includes(user.perfil_sistema);
+    if (!__isAdmin) {
+      return Response.json({ error: 'Acesso negado. Apenas administradores podem listar usuarios.' }, { status: 403 });
+    }
+
     const usuarios = await base44.asServiceRole.entities.User.list();
 
     return Response.json({ sucesso: true, usuarios });
