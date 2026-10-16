@@ -2,17 +2,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
-    const body = await req.json();
-    const { user_id } = body;
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
 
-    if (!user_id) {
-      return Response.json({ error: 'user_id é obrigatório' }, { status: 400 });
+    if (!user) {
+      return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const base44 = createClientFromRequest(req);
-
-    // Atualiza o campo ultimo_acesso do usuário com a data/hora atual
-    await base44.asServiceRole.entities.User.update(user_id, {
+    // SEGURANCA: carimba o ultimo acesso SEMPRE do proprio chamador (ignora qualquer user_id
+    // enviado no corpo), impedindo que um usuario altere o registro de outro.
+    await base44.asServiceRole.entities.User.update(user.id, {
       ultimo_acesso: new Date().toISOString()
     });
 
