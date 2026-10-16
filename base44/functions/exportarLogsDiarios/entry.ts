@@ -9,6 +9,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
+    // SEGURANCA: apenas administradores podem exportar a trilha de auditoria.
+    const __isAdmin = user.role === 'admin' || ['administrador', 'super_administrador'].includes(user.perfil_sistema);
+    if (!__isAdmin) {
+      return Response.json({ error: 'Acesso negado. Apenas administradores podem exportar logs.' }, { status: 403 });
+    }
+
     const { data } = await req.json().catch(() => ({}));
 
     // Se não informado, usa ontem
