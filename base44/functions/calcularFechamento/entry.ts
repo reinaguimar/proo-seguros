@@ -45,6 +45,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
+    // SEGURANCA: apenas administradores podem calcular/alterar fechamentos.
+    const __isAdmin = user.role === 'admin' || ['administrador', 'super_administrador'].includes(user.perfil_sistema);
+    if (!__isAdmin) {
+      return Response.json({ error: 'Acesso negado. Apenas administradores podem calcular fechamentos.' }, { status: 403 });
+    }
+
     try { checkRateLimit(user.id, 'calcularFechamento'); } catch (e) {
       return Response.json({ error: e.message }, { status: 429 });
     }
