@@ -56,7 +56,7 @@ export default function PolicySummary({ formData, calculatedData, onSave, onEdit
               <div>
                 <span className="text-slate-500">Início:</span>
                 <p className="font-semibold">
-                  {format(new Date(formData.data_inicio), "dd/MM/yyyy", { locale: ptBR })}
+                  {format(new Date(formData.data_inicio + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                 </p>
               </div>
               <div>
