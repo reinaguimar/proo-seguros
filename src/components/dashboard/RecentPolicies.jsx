@@ -76,7 +76,7 @@ export default function RecentPolicies({ apolices, isLoading }) {
                     <TableCell className="py-3 text-slate-600 text-sm">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {format(new Date(apolice.data_inicio_apolice), "dd/MM/yyyy", { locale: ptBR })}
+                        {format(new Date(apolice.data_inicio_apolice + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                       </div>
                     </TableCell>
                     <TableCell className="py-3">
