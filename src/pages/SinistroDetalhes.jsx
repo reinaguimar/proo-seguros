@@ -474,7 +474,7 @@ export default function SinistroDetalhes() {
                 <div>
                   <p className="text-sm text-slate-500">Data do Sinistro</p>
                   <p className="text-lg font-bold text-slate-900">
-                    {format(new Date(sinistro.data_sinistro), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(sinistro.data_sinistro + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
                 <Calendar className="w-8 h-8 text-slate-300" />
@@ -530,7 +530,7 @@ export default function SinistroDetalhes() {
               <div>
                 <Label className="text-slate-500 text-sm">Data de Abertura</Label>
                 <p className="font-semibold">
-                  {format(new Date(sinistro.data_abertura), "dd/MM/yyyy", { locale: ptBR })}
+                  {format(new Date(sinistro.data_abertura + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                 </p>
               </div>
               {sinistro.descricao && (
@@ -878,7 +878,7 @@ export default function SinistroDetalhes() {
                           R$ {(gasto.valor_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </TableCell>
                         <TableCell>
-                          {format(new Date(gasto.data_nota_fiscal), "dd/MM/yyyy", { locale: ptBR })}
+                          {gasto.data_nota_fiscal ? format(new Date(gasto.data_nota_fiscal + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : '-'}
                         </TableCell>
                         <TableCell>
                           {gasto.forma_pagamento === "a_vista" ? (
