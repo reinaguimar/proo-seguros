@@ -55,13 +55,13 @@ const getMovimentacaoBadge = (apolice) => {
 
 const isActivePolicy = (apolice) => {
   const now = new Date();
-  const endDate = new Date(apolice.data_fim_apolice);
+  const endDate = new Date(apolice.data_fim_apolice + 'T00:00:00');
   return !apolice.cancelada_para_revisao && apolice.status !== 'cancelada' && endDate >= now && !apolice.renovada;
 };
 
 const isElegivelRenovacao = (apolice) => {
   const now = new Date();
-  const endDate = new Date(apolice.data_fim_apolice);
+  const endDate = new Date(apolice.data_fim_apolice + 'T00:00:00');
   const diasParaVencer = differenceInDays(endDate, now);
   
   // Elegível se: vencida ou vence em até 30 dias, não cancelada, não renovada
