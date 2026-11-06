@@ -211,7 +211,7 @@ export default function CancelarApolice() {
                 <div>
                   <span className="text-slate-500">Vigência Atual:</span>
                   <p className="font-semibold">
-                    {format(new Date(apoliceOriginal.data_inicio_apolice), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(apoliceOriginal.data_fim_apolice), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(apoliceOriginal.data_inicio_apolice + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(apoliceOriginal.data_fim_apolice + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
                 <div>
