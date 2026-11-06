@@ -138,7 +138,7 @@ export default function Apolices() {
         const em30 = new Date(now); em30.setDate(em30.getDate() + 30);
         filtered = filtered.filter(a => {
           if (!a.data_fim_apolice) return false;
-          const d = new Date(a.data_fim_apolice);
+          const d = new Date(a.data_fim_apolice + 'T00:00:00');
           if (quickFilter === 'ativas') return d >= now && !a.cancelada_para_revisao;
           if (quickFilter === 'vencendo30') return d >= now && d <= em30;
           if (quickFilter === 'vencidas') return d < now;
@@ -217,7 +217,7 @@ export default function Apolices() {
       if (filtro.valor !== "todo_periodo") {
         filtered = filtered.filter(a => {
           if (!a.data_inicio_apolice) return false;
-          const dataInicioApolice = new Date(a.data_inicio_apolice);
+          const dataInicioApolice = new Date(a.data_inicio_apolice + 'T00:00:00');
           return dataInicioApolice >= dataInicio && dataInicioApolice <= dataFim;
         });
       }
