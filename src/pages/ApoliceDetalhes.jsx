@@ -206,7 +206,9 @@ const formatCurrency = (value) =>
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
-  return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+  const _s = String(dateString);
+  const _d = /^\d{4}-\d{2}-\d{2}$/.test(_s) ? new Date(_s + 'T00:00:00') : new Date(_s);
+  return format(_d, 'dd/MM/yyyy', { locale: ptBR });
 };
 
 const maskCpfCnpj = (doc) => {
