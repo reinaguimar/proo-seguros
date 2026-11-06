@@ -548,7 +548,7 @@ export default function Dashboard() {
                 {a.numero_apolice}
               </Link>
               <span className="text-xs text-gray-400">{a.filial_nome}</span>
-              <span className="text-xs font-medium text-amber-600">{format(new Date(a.data_fim_apolice), "dd/MM/yyyy")}</span>
+              <span className="text-xs font-medium text-amber-600">{format(new Date(a.data_fim_apolice + 'T00:00:00'), "dd/MM/yyyy")}</span>
             </div>
           ))}
           {kpiCarteira.vencendo30 > 5 && (
