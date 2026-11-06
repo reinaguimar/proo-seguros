@@ -101,7 +101,7 @@ export default function BorderoFilial() {
         const apolices = todasApolices.filter(a => {
           if (!a.data_inicio_apolice) return false;
           if (a.excluido_logico === true) return false;
-          const d = new Date(a.data_inicio_apolice);
+          const d = new Date(a.data_inicio_apolice + 'T00:00:00');
           return d >= inicio && d <= fim;
         });
 
