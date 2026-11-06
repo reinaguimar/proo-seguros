@@ -224,7 +224,7 @@ export default function Sinistros() {
       startDate.setHours(0, 0, 0, 0);
 
       filtered = filtered.filter(sinistro => {
-        const sinistroDate = new Date(sinistro.data_sinistro);
+        const sinistroDate = new Date(sinistro.data_sinistro + 'T00:00:00');
         sinistroDate.setHours(0, 0, 0, 0); // Reset time for comparison
         return sinistroDate >= startDate;
       });
@@ -255,8 +255,8 @@ export default function Sinistros() {
         sinistro.numero_apolice || "",
         apolicesMap[sinistro.id_apolice]?.id_objeto || "-",
         sinistro.cpf_segurado || "",
-        format(new Date(sinistro.data_sinistro), "dd/MM/yyyy", { locale: ptBR }),
-        sinistro.data_abertura ? format(new Date(sinistro.data_abertura), "dd/MM/yyyy", { locale: ptBR }) : "",
+        format(new Date(sinistro.data_sinistro + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }),
+        sinistro.data_abertura ? format(new Date(sinistro.data_abertura + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "",
         PRODUTOS_INFO[sinistro.produto_sinistrado]?.nome || "",
         `R$ ${(sinistro.valor_inicial || 0).toFixed(2)}`,
         `R$ ${(sinistro.franquia || 0).toFixed(2)}`,
@@ -563,10 +563,10 @@ export default function Sinistros() {
                             {maskPII(sinistro.cpf_segurado)}
                           </TableCell>
                           <TableCell className="text-sm">
-                            {format(new Date(sinistro.data_sinistro), "dd/MM/yyyy", { locale: ptBR })}
+                            {format(new Date(sinistro.data_sinistro + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                           </TableCell>
                           <TableCell className="text-sm">
-                            {sinistro.data_abertura ? format(new Date(sinistro.data_abertura), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                            {sinistro.data_abertura ? format(new Date(sinistro.data_abertura + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary" className={PRODUTOS_INFO[sinistro.produto_sinistrado]?.color}>
