@@ -130,7 +130,7 @@ export default function NovoSinistro() {
 
     try {
       const cpfLimpo = cleanCpfCnpj(cpfSegurado);
-      const dataSinistroObj = new Date(dataSinistro);
+      const dataSinistroObj = new Date(dataSinistro + 'T00:00:00');
       const todasApolices = await base44.entities.Apolice.filter({ natureza_movimento: { $ne: "Cancelamento" } });
 
       const apolicesVigentes = todasApolices.filter(apolice => {
@@ -418,7 +418,7 @@ export default function NovoSinistro() {
                       <div>
                         <p className="text-xs text-slate-500 mb-1">Vigência</p>
                         <p className="text-sm font-semibold text-slate-700">
-                          {format(new Date(apolice.data_inicio_apolice), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(apolice.data_fim_apolice), "dd/MM/yyyy", { locale: ptBR })}
+                          {format(new Date(apolice.data_inicio_apolice + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(apolice.data_fim_apolice + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                         </p>
                       </div>
                       <div>
@@ -585,7 +585,7 @@ export default function NovoSinistro() {
                 <div className="space-y-1 text-sm text-blue-800">
                   <p><strong>Apólice:</strong> {apoliceSeleccionada.numero_apolice}</p>
                   <p><strong>Produto:</strong> {PRODUTOS_INFO[produtoSelecionado]?.nome}</p>
-                  <p><strong>Data do Sinistro:</strong> {format(new Date(dataSinistro), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  <p><strong>Data do Sinistro:</strong> {format(new Date(dataSinistro + 'T00:00:00'), "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
               </div>
 
