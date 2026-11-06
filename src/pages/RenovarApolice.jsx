@@ -405,7 +405,7 @@ export default function RenovarApolice() {
                         <strong>Renovação #{createdApolice.numero_renovacao}</strong>
                       </p>
                       <p className="text-xs text-slate-500 mt-1">
-                        Vigência: {format(new Date(createdApolice.data_inicio_apolice), "dd/MM/yyyy")} até {format(new Date(createdApolice.data_fim_apolice), "dd/MM/yyyy")}
+                        Vigência: {format(new Date(createdApolice.data_inicio_apolice + 'T00:00:00'), "dd/MM/yyyy")} até {format(new Date(createdApolice.data_fim_apolice + 'T00:00:00'), "dd/MM/yyyy")}
                       </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -490,13 +490,13 @@ export default function RenovarApolice() {
               <div>
                 <span className="text-slate-600 font-medium">Vigência Anterior:</span>
                 <p className="font-semibold text-slate-900">
-                  {format(new Date(apoliceOriginal.data_inicio_apolice), "dd/MM/yyyy")} - {format(new Date(apoliceOriginal.data_fim_apolice), "dd/MM/yyyy")}
+                  {format(new Date(apoliceOriginal.data_inicio_apolice + 'T00:00:00'), "dd/MM/yyyy")} - {format(new Date(apoliceOriginal.data_fim_apolice + 'T00:00:00'), "dd/MM/yyyy")}
                 </p>
               </div>
               <div>
                 <span className="text-slate-600 font-medium">Nova Vigência:</span>
                 <p className="font-semibold text-green-700">
-                  {formData.data_inicio && format(new Date(formData.data_inicio), "dd/MM/yyyy")} - {formData.data_inicio && format(addDays(new Date(formData.data_inicio), CONFIG.prazo_em_dias), "dd/MM/yyyy")}
+                  {formData.data_inicio && format(new Date(formData.data_inicio + 'T00:00:00'), "dd/MM/yyyy")} - {formData.data_inicio && format(addDays(new Date(formData.data_inicio + 'T00:00:00'), CONFIG.prazo_em_dias), "dd/MM/yyyy")}
                 </p>
               </div>
             </div>
