@@ -12,6 +12,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
+// Datas podem vir como "YYYY-MM-DD" ou ISO completo ("...T03:00:00.000Z").
+// Normaliza sempre para o dia (sem fuso) e nunca deixa uma data inválida quebrar a tabela.
+const formatarData = (valor, padrao = "dd/MM/yy") => {
+  if (!valor) return "—";
+  const dia = String(valor).slice(0, 10);
+  const data = new Date(`${dia}T00:00:00`);
+  if (isNaN(data.getTime())) return "—";
+  return format(data, padrao, { locale: ptBR });
+};
+
 const PRODUTOS_LABELS = {
   FR: "Furto e Roubo",
   COL_PARCIAL: "Colisão Parcial",
@@ -204,12 +214,12 @@ export default function PoliciesTable({ apolices, isLoading, onRefresh, selected
               </TableCell>
               <TableCell className="py-3">
                 <span className="text-sm text-slate-600">
-                  {apolice.data_inicio_apolice ? format(new Date(apolice.data_inicio_apolice + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }) : "—"}
+                  {formatarData(apolice.data_inicio_apolice)}
                 </span>
               </TableCell>
               <TableCell className="py-3">
                 <span className="text-sm text-slate-600">
-                  {apolice.data_fim_apolice ? format(new Date(apolice.data_fim_apolice + 'T00:00:00'), "dd/MM/yy", { locale: ptBR }) : "—"}
+                  {formatarData(apolice.data_fim_apolice)}
                 </span>
               </TableCell>
               <TableCell className="py-3">
